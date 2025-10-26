@@ -109,7 +109,7 @@ function buildUI() {
 
     const discordButton = `
   <button id="sendToDiscord" class="btn-discord">
-    <img src="https://i.imgur.com/8F2uGHv.png" alt="Discord">
+    <img src="https://www.svgrepo.com/show/353655/discord-icon.svg" alt="Discord">
     Enviar defesa disponível para Discord
   </button>`;
     jQuery('#sendToDiscord').remove();               // avoid duplicates
@@ -300,3 +300,4 @@ function sendDefensiveTroopsToDiscord(totalTroopsAtHome) {
         }
     }
 );
+

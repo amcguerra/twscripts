@@ -125,12 +125,12 @@ function sendDefensiveTroopsToDiscord(totalTroopsAtHome) {
             title: "**🛡️ TROPA DEFENSIVA**",
             fields: [
                 { name: "🗂️ Grupo Atual",      value: currentGroup,                  inline: false },
-                { name: "Lanceiros",           value: `${totalTroopsAtHome.spear}`,   inline: true },
-                { name: "Espadachins",         value: `${totalTroopsAtHome.sword}`,   inline: true },
-                { name: "Batedores",           value: `${totalTroopsAtHome.spy}`,     inline: true },
-                { name: "Cavalaria Pesada",    value: `${totalTroopsAtHome.heavy}`,   inline: true },
-                { name: "Catapultas",          value: `${totalTroopsAtHome.catapult}`,inline: true },
-                { name: "Paladinos",           value: `${totalTroopsAtHome.knight}`,  inline: true }
+                { name: "<:lanceiro:1368839513891409972> Lanceiros",           value: `${totalTroopsAtHome.spear}`,   inline: true },
+                { name: "<:espadachim:1368839514746785844> Espadachins",         value: `${totalTroopsAtHome.sword}`,   inline: true },
+                { name: "<:batedor:1368839512423137404> Batedores",           value: `${totalTroopsAtHome.spy}`,     inline: true },
+                { name: "<:pesada:1368839517997498398> Cavalaria Pesada",    value: `${totalTroopsAtHome.heavy}`,   inline: true },
+                { name: "<:catapulta:1368839516441280573> Catapultas",          value: `${totalTroopsAtHome.catapult}`,inline: true },
+                { name: "<:paladino:1368332901728391319> Paladinos",           value: `${totalTroopsAtHome.knight}`,  inline: true }
             ]
         }]
     };
@@ -287,4 +287,5 @@ function sendDefensiveTroopsToDiscord(totalTroopsAtHome) {
             return labels[key] || '';
         }
     }
+
 );

@@ -39,18 +39,20 @@ $.getScript(
         // Initialize Library
         await twSDK.init(scriptConfig);
 $('<style>').prop('type','text/css').html(`
-  /* botão */
+  /* botão estilo Tribal Wars */
   #sendToDiscord.btn-discord {
     display: block;
     transition: transform 0.2s, box-shadow 0.2s;
     margin: 20px auto;
     padding: 8px 16px;
-    background: linear-gradient(to bottom, #5865f2 0%, #4752c4 100%);
-    border: 1px solid #3c45a5;
+    background: linear-gradient(to bottom, #f2e5b6 0%, #d6c58a 100%);
+    border: 1px solid #b59e4c;
     border-radius: 6px;
-    color: #fff;
+    color: #383020;
     font-weight: bold;
     font-size: 14px;
+    border-image: linear-gradient(45deg, #d6c58a, #f2e5b6) 1;
+    text-shadow: 0 1px 0 rgba(255,255,255,0.6);
     cursor: pointer;
   }
   #sendToDiscord.btn-discord:active {
@@ -58,9 +60,19 @@ $('<style>').prop('type','text/css').html(`
     box-shadow: 0 2px 4px rgba(0,0,0,0.2);
   }
   #sendToDiscord.btn-discord:hover {
-    background: linear-gradient(to bottom, #4752c4 0%, #3c45a5 100%);
+    background: linear-gradient(to bottom, #e7d49f 0%, #c9b16f 100%);
     transform: translateY(-2px);
+    border-image-width: 2;
     box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+  }
+  /* ícone dentro do botão */
+  #sendToDiscord.btn-discord img {
+    max-width: 20px;
+    max-height: 20px;
+    width: auto;
+    height: auto;
+    vertical-align: middle;
+    margin-right: 8px;
   }
 `).appendTo('head');
         const scriptInfo = twSDK.scriptInfo();
@@ -97,6 +109,7 @@ function buildUI() {
 
     const discordButton = `
   <button id="sendToDiscord" class="btn-discord">
+    <img src="https://i.imgur.com/8F2uGHv.png" alt="Discord">
     Enviar defesa disponível para Discord
   </button>`;
     jQuery('#sendToDiscord').remove();               // avoid duplicates
@@ -144,7 +157,6 @@ function sendDefensiveTroopsToDiscord(totalTroopsAtHome) {
         error:   () => alert("Houve um erro ao enviar os dados para o Discord.")
     });
 }
-
         // Helper: Prepare UI
         function prepareContent(totalTroopsAtHome, bbCode) {
             const {

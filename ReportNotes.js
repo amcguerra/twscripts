@@ -19,7 +19,6 @@
   const MAX_CLEARS = 100;
   // =======================================
 
-  // Thresholds / constants
   const OFFENSE_THRESHOLD = 3000;
   const PROB_OFFENSE_THRESHOLD = 500;
   const DEFENSE_THRESHOLD = 1000;
@@ -653,38 +652,5 @@
     }
   };
 
-  function addNotesButton() {
-    if (document.getElementById('myNotesButton')) return;
-
-    const td = document.querySelector('td[valign="top"][width="100%"]');
-    if (!td) return;
-
-    const wrap = document.createElement('div');
-    wrap.style.display = 'flex';
-    wrap.style.justifyContent = 'flex-end';
-    wrap.style.margin = '6px 0';
-
-    const button = document.createElement('span');
-    button.id = 'myNotesButton';
-    button.textContent = 'Notes';
-    button.style.display = 'inline-flex';
-    button.style.alignItems = 'center';
-    button.style.padding = '3px 8px';
-    button.style.cursor = 'pointer';
-    button.style.background = 'linear-gradient(to bottom, #947a62 0%, #7b5c3d 22%, #6c4824 30%, #6c4824 100%)';
-    button.style.color = '#fff';
-    button.style.border = '1px solid #000';
-    button.style.borderRadius = '5px';
-    button.style.fontWeight = 'bold';
-    button.style.fontSize = '12px';
-
-    button.addEventListener('click', () => {
-      Notes.start();
-    });
-
-    wrap.appendChild(button);
-    td.insertBefore(wrap, td.firstChild);
-  }
-
-  setTimeout(addNotesButton, 200);
+  Notes.start();
 })();

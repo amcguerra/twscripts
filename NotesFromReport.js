@@ -565,7 +565,7 @@
       const isOffense = (villageType === "Offensive" || villageType === "Probably Offensive");
       const color = isOffense ? "ff0000" : "0000ff";
       const typeIcon = isOffense ? "[unit]axe[/unit]" : "[unit]sword[/unit]";
-      note += "[color=#" + color + "][b][size=12]" + villageType + "[/size][/b][/color] " + typeIcon + " ";
+      note += "[color=#" + color + "][b][size=11]" + villageType + "[/size][/b][/color] " + typeIcon + " ";
 
       if (this.data.player.playerIsAttacking || this.data.player.playerWantsDefenderInfo) {
         if (this.data.village.defensive.buildings.watchtower[0]) note += "[building]watchtower[/building] Watchtower [building]watchtower[/building] " + this.data.village.defensive.buildings.watchtower[1] + " | ";
@@ -653,6 +653,24 @@
     }
   };
 
-  // Auto-run immediately (no button injection)
-  Notes.start();
+  function startWhenReady(attempts = 0) {
+    const ready =
+      document.querySelector('#attack_info_att') &&
+      document.querySelector('#attack_info_def') &&
+      document.querySelector('#attack_info_att_units') &&
+      document.querySelector('#attack_info_def_units');
+
+    if (ready) {
+      Notes.start();
+      return;
+    }
+
+    if (attempts < 50) {
+      setTimeout(() => startWhenReady(attempts + 1), 200);
+    } else {
+      Notes.start();
+    }
+  }
+
+  startWhenReady();
 })();

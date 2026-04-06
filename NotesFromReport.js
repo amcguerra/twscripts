@@ -24,8 +24,6 @@
   const PROB_OFFENSE_THRESHOLD = 500;
   const DEFENSE_THRESHOLD = 1000;
   const PROB_DEFENSE_THRESHOLD = 500;
-  const SUPPORT_DIVISOR = 20000;
-  const SUPPORT_ROUND = 10;
 
   const FARM_SPACE_WITH_ARCHERS = [1,1,1,1,2,4,5,6,5,8];
   const FARM_SPACE_NO_ARCHERS = [1,1,1,2,4,6,5,8];
@@ -217,9 +215,6 @@
         } else if (this.data.village.defensive.troops.inside.defensive > PROB_DEFENSE_THRESHOLD) {
           this.data.village.defensive.type = "Probably Defensive";
         }
-
-        this.data.village.defensive.troops.supports =
-          Math.round(this.data.village.defensive.troops.inside.defensive / SUPPORT_DIVISOR * SUPPORT_ROUND) / SUPPORT_ROUND;
       } else {
         this.data.village.defensive.type = "No troops survived";
       }
@@ -240,9 +235,6 @@
             this.data.village.defensive.type = "Probably Defensive";
           }
         }
-
-        this.data.village.defensive.troops.supports +=
-          Math.round(this.data.village.defensive.troops.away.defensive / SUPPORT_DIVISOR * SUPPORT_ROUND) / SUPPORT_ROUND;
       }
 
       if (this.data.village.offensive.troops.offensive > this.data.village.offensive.troops.defensive) {
@@ -565,16 +557,13 @@
       const isOffense = (villageType === "Offensive" || villageType === "Probably Offensive");
       const color = isOffense ? "ff0000" : "0000ff";
       const typeIcon = isOffense ? "[unit]axe[/unit]" : "[unit]sword[/unit]";
-      note += "[color=#" + color + "][b][size=11]" + villageType + "[/size][/b][/color] " + typeIcon + " ";
+      note += "[color=#" + color + "][b][size=12]" + villageType + "[/size][/b][/color] " + typeIcon + " ";
 
       if (this.data.player.playerIsAttacking || this.data.player.playerWantsDefenderInfo) {
         if (this.data.village.defensive.buildings.watchtower[0]) note += "[building]watchtower[/building] Watchtower [building]watchtower[/building] " + this.data.village.defensive.buildings.watchtower[1] + " | ";
         if (this.data.village.defensive.buildings.wall[0]) note += "[building]wall[/building][color=#5c3600][b] Wall " + this.data.village.defensive.buildings.wall[1] + "[/b][/color] | ";
         if (this.data.village.defensive.buildings.firstChurch[0]) note += "[building]church_f[/building] First church [building]church[/building] | ";
         if (this.data.village.defensive.buildings.church[0]) note += "[building]church_f[/building] Church [building]church[/building] " + this.data.village.defensive.buildings.church[1] + " | ";
-        if (this.data.village.defensive.troops.visible && villageType !== "Offensive" && villageType !== "Probably Offensive") {
-          note += this.data.village.defensive.troops.supports + " defensive nukes | ";
-        }
       }
 
       if (this.data.player.playerIsAttacking) {

@@ -571,6 +571,9 @@
       if (this.data.player.playerIsAttacking && !this.data.player.playerWantsAttackerInfo) {
         villageType = this.data.village.offensive.type;
       }
+      if (this.data.player.playerWantsAttackerInfo) {
+        villageType = this.data.village.offensive.type;
+      }
       if (!this.data.player.playerIsAttacking && this.data.player.playerWantsDefenderInfo) {
         villageType = this.data.village.defensive.type;
       }

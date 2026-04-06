@@ -53,15 +53,16 @@
     if (dataUnit) return dataUnit;
 
     const cls = cell.className || '';
-    let m = cls.match(/unit-([a-z_]+)/);
-    if (m) return m[1];
+    let m = cls.match(/(?:^|\s)unit-([a-z_]+)(?:\s|$)/);
+    if (m && m[1] && m[1] !== 'item') return m[1];
 
     try {
       const table = cell.closest('table');
       if (table) {
-        const headerImgs = table.querySelectorAll('tr:first-child th img, tr:first-child td img');
-        if (headerImgs && headerImgs[idx]) {
-          const src = headerImgs[idx].getAttribute('src') || '';
+        const headerImgs = table.querySelectorAll('tr:first-child img');
+        if (headerImgs && headerImgs.length) {
+          const headerIdx = idx % headerImgs.length;
+          const src = headerImgs[headerIdx].getAttribute('src') || '';
           m = src.match(/unit_?([a-z_]+)\.(png|webp)/i);
           if (m) return m[1];
         }

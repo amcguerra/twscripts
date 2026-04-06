@@ -568,10 +568,7 @@
       if (this.data.player.playerIsAttacking || this.data.player.playerWantsDefenderInfo) {
         villageType = this.data.village.defensive.type;
       }
-      if (this.data.player.playerIsAttacking && !this.data.player.playerWantsAttackerInfo) {
-        villageType = this.data.village.offensive.type;
-      }
-      if (this.data.player.playerWantsAttackerInfo) {
+      if (!this.data.player.playerIsAttacking || this.data.player.playerWantsAttackerInfo) {
         villageType = this.data.village.offensive.type;
       }
       if (!this.data.player.playerIsAttacking && this.data.player.playerWantsDefenderInfo) {
@@ -581,7 +578,7 @@
       const isOffense = (villageType === "Offensive" || villageType === "Probably Offensive");
       const color = isOffense ? "ff0000" : "0000ff";
       const typeIcon = isOffense ? "[unit]axe[/unit]" : "[unit]sword[/unit]";
-      note += "[color=#" + color + "][b][size=12]" + villageType + "[/size][/b][/color] " + typeIcon + " ";
+      note += "[color=#" + color + "][b][size=11]" + villageType + "[/size][/b][/color] " + typeIcon + " ";
 
       if (this.data.player.playerIsAttacking || this.data.player.playerWantsDefenderInfo) {
         if (this.data.village.defensive.buildings.watchtower[0]) note += "[building]watchtower[/building] Watchtower [building]watchtower[/building] " + this.data.village.defensive.buildings.watchtower[1] + " | ";

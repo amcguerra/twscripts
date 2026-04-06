@@ -31,6 +31,57 @@
   const UNIT_COUNT_WITH_ARCHERS = 10;
   const UNIT_COUNT_NO_ARCHERS = 8;
 
+  // Unit meta by name (farm space + role)
+  const UNIT_META = {
+    spear:   { farm: 1, role: 'def' },
+    sword:   { farm: 1, role: 'def' },
+    axe:     { farm: 1, role: 'off' },
+    archer:  { farm: 1, role: 'def' },
+    spy:     { farm: 2, role: 'none' },
+    light:   { farm: 4, role: 'off' },
+    marcher: { farm: 5, role: 'off' },
+    heavy:   { farm: 6, role: 'def' },
+    ram:     { farm: 5, role: 'off' },
+    catapult:{ farm: 8, role: 'off' },
+    knight:  { farm: 10, role: 'def' },
+    snob:    { farm: 100, role: 'off' },
+    militia: { farm: 0, role: 'def' }
+  };
+
+  function getUnitNameFromCell(cell, idx) {
+    const dataUnit = cell.getAttribute('data-unit') || (cell.dataset && cell.dataset.unit);
+    if (dataUnit) return dataUnit;
+
+    const cls = cell.className || '';
+    let m = cls.match(/unit-([a-z_]+)/);
+    if (m) return m[1];
+
+    try {
+      const table = cell.closest('table');
+      if (table) {
+        const headerImgs = table.querySelectorAll('tr:first-child th img, tr:first-child td img');
+        if (headerImgs && headerImgs[idx]) {
+          const src = headerImgs[idx].getAttribute('src') || '';
+          m = src.match(/unit_?([a-z_]+)\.(png|webp)/i);
+          if (m) return m[1];
+        }
+      }
+    } catch (e) {}
+
+    return null;
+  }
+
+  function addUnitPower(target, unitName, count) {
+    const meta = UNIT_META[unitName];
+    if (!meta) return;
+
+    if (meta.role === 'off') {
+      target.offensive += count * meta.farm;
+    } else if (meta.role === 'def') {
+      target.defensive += count * meta.farm;
+    }
+  }
+
   const Notes = {
     data: {
       player: {
@@ -119,19 +170,8 @@
           self.data.village.defensive.troops.away.totals[idx] = count;
         }
 
-        if (self.data.world.archersEnabled) {
-          if (idx == 2 || idx == 5 || idx == 6 || idx == 8) {
-            self.data.village.defensive.troops.away.offensive += count * self.data.world.farmSpacePerUnit[idx];
-          } else if (idx == 0 || idx == 1 || idx == 3 || idx == 7 || idx == 9) {
-            self.data.village.defensive.troops.away.defensive += count * self.data.world.farmSpacePerUnit[idx];
-          }
-        } else {
-          if (idx == 2 || idx == 4 || idx == 6) {
-            self.data.village.defensive.troops.away.offensive += count * self.data.world.farmSpacePerUnit[idx];
-          } else if (idx == 0 || idx == 1 || idx == 5 || idx == 7) {
-            self.data.village.defensive.troops.away.defensive += count * self.data.world.farmSpacePerUnit[idx];
-          }
-        }
+        const unitName = getUnitNameFromCell(cell, idx);
+        if (unitName) addUnitPower(self.data.village.defensive.troops.away, unitName, count);
       });
     },
 
@@ -147,19 +187,8 @@
           self.data.village.defensive.troops.inside.totals[idx] = count;
         }
 
-        if (self.data.world.archersEnabled) {
-          if (idx == 2 || idx == 5 || idx == 6 || idx == 8) {
-            self.data.village.defensive.troops.inside.offensive += count * self.data.world.farmSpacePerUnit[idx];
-          } else if (idx == 0 || idx == 1 || idx == 3 || idx == 7 || idx == 9) {
-            self.data.village.defensive.troops.inside.defensive += count * self.data.world.farmSpacePerUnit[idx];
-          }
-        } else {
-          if (idx == 2 || idx == 4 || idx == 6) {
-            self.data.village.defensive.troops.inside.offensive += count * self.data.world.farmSpacePerUnit[idx];
-          } else if (idx == 0 || idx == 1 || idx == 5 || idx == 7) {
-            self.data.village.defensive.troops.inside.defensive += count * self.data.world.farmSpacePerUnit[idx];
-          }
-        }
+        const unitName = getUnitNameFromCell(cell, idx);
+        if (unitName) addUnitPower(self.data.village.defensive.troops.inside, unitName, count);
       });
     },
 
@@ -172,19 +201,8 @@
           self.data.village.offensive.troops.totals[idx] = count;
         }
 
-        if (self.data.world.archersEnabled) {
-          if (idx == 2 || idx == 5 || idx == 6) {
-            self.data.village.offensive.troops.offensive += count * self.data.world.farmSpacePerUnit[idx];
-          } else if (idx == 0 || idx == 1 || idx == 3 || idx == 7 || idx == 9) {
-            self.data.village.offensive.troops.defensive += count * self.data.world.farmSpacePerUnit[idx];
-          }
-        } else {
-          if (idx == 2 || idx == 4 || idx == 6) {
-            self.data.village.offensive.troops.offensive += count * self.data.world.farmSpacePerUnit[idx];
-          } else if (idx == 0 || idx == 1 || idx == 5 || idx == 7) {
-            self.data.village.offensive.troops.defensive += count * self.data.world.farmSpacePerUnit[idx];
-          }
-        }
+        const unitName = getUnitNameFromCell(cell, idx);
+        if (unitName) addUnitPower(self.data.village.offensive.troops, unitName, count);
       });
     },
 
@@ -214,6 +232,8 @@
           this.data.village.defensive.type = "Defensive";
         } else if (this.data.village.defensive.troops.inside.defensive > PROB_DEFENSE_THRESHOLD) {
           this.data.village.defensive.type = "Probably Defensive";
+        } else {
+          this.data.village.defensive.type = "Unknown";
         }
       } else {
         this.data.village.defensive.type = "No troops survived";

@@ -307,7 +307,7 @@
     estimateClears: async function () {
       try {
         if (!document.querySelector('#attack_info_def_units')) return null;
-        if (this.reportShowsAllDefendersDead()) return 1;
+        if (this.reportShowsAllDefendersDead()) return 0;
 
         let reportId = null;
         const simLinks = Array.from(document.querySelectorAll('a[href*="screen=place"][href*="mode=sim"]'));

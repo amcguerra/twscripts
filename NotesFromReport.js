@@ -162,10 +162,10 @@
 
   function typeBBCode(type, hasNoble) {
     let out;
-    if (type === 'Offensive') out = '[color=#ff0000][b]▶ Attack[/b][/color]';
-    else if (type === 'Probably Offensive') out = '[color=#ff0000][b]▶ Probably Attack[/b][/color]';
-    else if (type === 'Defensive') out = '[color=#0000cc][b]▶ Defense[/b][/color]';
-    else if (type === 'Probably Defensive') out = '[color=#0000cc][b]▶ Probably Defense[/b][/color]';
+    if (type === 'Offensive') out = '[color=#ff0000][b]● Attack[/b][/color]';
+    else if (type === 'Probably Offensive') out = '[color=#ff0000][b]● Probably Attack[/b][/color]';
+    else if (type === 'Defensive') out = '[color=#0000cc][b]● Defense[/b][/color]';
+    else if (type === 'Probably Defensive') out = '[color=#0000cc][b]● Probably Defense[/b][/color]';
     else out = '[color=#777777][b]? Unknown[/b][/color]';
 
     if (hasNoble) out += ' [unit]snob[/unit]';

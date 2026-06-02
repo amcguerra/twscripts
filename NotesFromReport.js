@@ -725,8 +725,24 @@
         note += '[spoiler=Spoiler][report_display]' + link + '[/report_display][/spoiler]';
       } else {
         const reportExport = $('#report_export_code').text().trim();
-        if (reportExport) note += '[spoiler=Spoiler]' + reportExport + '[/spoiler]';
-        else note += '[b]Public report not generated.[/b]';
+
+        if (reportExport) {
+          const isForwardedReport =
+            !this.data.player.playerIsAttacking &&
+            !this.data.player.playerIsDefending &&
+            (
+              this.data.player.playerWantsAttackerInfo ||
+              this.data.player.playerWantsDefenderInfo
+            );
+
+          if (isForwardedReport) {
+            note += reportExport;
+          } else {
+            note += '[spoiler=Spoiler]' + reportExport + '[/spoiler]';
+          }
+        } else {
+          note += '[b]Public report not generated.[/b]';
+        }
       }
 
       debugLog('Note text generated', {

@@ -13,17 +13,17 @@
   const cat = 50;
   const ram = 300;
 
-  const setLuck = 1;       // 0 = luck 0%, 1 = luck -25%
+  const setLuck = 0;       // 0 = luck 0%, 1 = luck -25%
   const forceWall20 = 1;   // 1 = wall 20, 0 = wall from report
   const targetWallCat = 1; // if catapults target the wall
   const MAX_CLEARS = 100;
   // =======================================
 
-  // Thresholds / constants
   const OFFENSE_THRESHOLD = 3000;
-  const PROB_OFFENSE_THRESHOLD = 500;
+  const PROB_OFFENSE_THRESHOLD = 200;
   const DEFENSE_THRESHOLD = 1000;
-  const PROB_DEFENSE_THRESHOLD = 500;
+  const PROB_DEFENSE_THRESHOLD = 200;
+  const BUNK_DEF_POP_THRESHOLD = 25000;
 
   const FARM_SPACE_WITH_ARCHERS = [1,1,1,1,2,4,5,6,5,8];
   const FARM_SPACE_NO_ARCHERS = [1,1,1,2,4,6,5,8];
@@ -31,56 +31,135 @@
   const UNIT_COUNT_WITH_ARCHERS = 10;
   const UNIT_COUNT_NO_ARCHERS = 8;
 
-  // Unit meta by name (farm space + role)
-  const UNIT_META = {
-    spear:   { farm: 1, role: 'def' },
-    sword:   { farm: 1, role: 'def' },
-    axe:     { farm: 1, role: 'off' },
-    archer:  { farm: 1, role: 'def' },
-    spy:     { farm: 2, role: 'none' },
-    light:   { farm: 4, role: 'off' },
-    marcher: { farm: 5, role: 'off' },
-    heavy:   { farm: 6, role: 'def' },
-    ram:     { farm: 5, role: 'off' },
-    catapult:{ farm: 8, role: 'off' },
-    knight:  { farm: 10, role: 'def' },
-    snob:    { farm: 100, role: 'off' },
-    militia: { farm: 0, role: 'def' }
-  };
+  const UNIT_NAMES_WITH_ARCHERS = ['spear','sword','axe','archer','spy','light','marcher','heavy','ram','catapult'];
+  const UNIT_NAMES_NO_ARCHERS = ['spear','sword','axe','spy','light','heavy','ram','catapult'];
 
-  function getUnitNameFromCell(cell, idx) {
-    const dataUnit = cell.getAttribute('data-unit') || (cell.dataset && cell.dataset.unit);
-    if (dataUnit) return dataUnit;
-
-    const cls = cell.className || '';
-    let m = cls.match(/(?:^|\s)unit-([a-z_]+)(?:\s|$)/);
-    if (m && m[1] && m[1] !== 'item') return m[1];
-
-    try {
-      const table = cell.closest('table');
-      if (table) {
-        const headerImgs = table.querySelectorAll('tr:first-child img');
-        if (headerImgs && headerImgs.length) {
-          const headerIdx = idx % headerImgs.length;
-          const src = headerImgs[headerIdx].getAttribute('src') || '';
-          m = src.match(/unit_?([a-z_]+)\.(png|webp)/i);
-          if (m) return m[1];
-        }
-      }
-    } catch (e) {}
-
-    return null;
+  function parseIntOrZeroGlobal(s) {
+    if (s === undefined || s === null) return 0;
+    if (typeof s === 'number') return s | 0;
+    const cleaned = String(s).replace(/\D/g, '');
+    return parseInt(cleaned || '0', 10) || 0;
   }
 
-  function addUnitPower(target, unitName, count) {
-    const meta = UNIT_META[unitName];
-    if (!meta) return;
+  function getFarm(idx, archersEnabled) {
+    const arr = archersEnabled ? FARM_SPACE_WITH_ARCHERS : FARM_SPACE_NO_ARCHERS;
+    return arr[idx] || 0;
+  }
 
-    if (meta.role === 'off') {
-      target.offensive += count * meta.farm;
-    } else if (meta.role === 'def') {
-      target.defensive += count * meta.farm;
+  function getUnitNameByIndex(idx, archersEnabled) {
+    const arr = archersEnabled ? UNIT_NAMES_WITH_ARCHERS : UNIT_NAMES_NO_ARCHERS;
+    return arr[idx] || null;
+  }
+
+  function getCountFromCell(cell) {
+    return parseIntOrZeroGlobal(cell.getAttribute('data-unit-count') || cell.textContent);
+  }
+
+  function addUnitPowerByOriginalIndex(target, idx, count, archersEnabled, context) {
+    count = parseIntOrZeroGlobal(count);
+    if (count <= 0) return;
+
+    const farm = getFarm(idx, archersEnabled);
+    if (!farm) return;
+
+    let offensiveIndexes;
+    let defensiveIndexes;
+
+    if (archersEnabled) {
+      offensiveIndexes = context === 'attacker' ? [2, 5, 6] : [2, 5, 6, 8];
+      defensiveIndexes = [0, 1, 3, 7, 9];
+    } else {
+      offensiveIndexes = [2, 4, 6];
+      defensiveIndexes = [0, 1, 5, 7];
     }
+
+    if (offensiveIndexes.includes(idx)) {
+      target.offensive += count * farm;
+    } else if (defensiveIndexes.includes(idx)) {
+      target.defensive += count * farm;
+    }
+  }
+
+  function formatK(n) {
+    n = Number(n) || 0;
+    if (n >= 1000) return (Math.round((n / 1000) * 10) / 10).toFixed(1) + 'k';
+    return String(n);
+  }
+
+  function hasMeaningfulTroopData(summary) {
+    if (!summary) return false;
+    return (summary.offCorePop + summary.defCorePop + summary.defSupportPop + summary.ramPop + summary.snobCount) > 0;
+  }
+
+  function summarizeTotals(totals, archersEnabled) {
+    const get = (unit) => {
+      const names = archersEnabled ? UNIT_NAMES_WITH_ARCHERS : UNIT_NAMES_NO_ARCHERS;
+      const idx = names.indexOf(unit);
+      return idx >= 0 ? parseIntOrZeroGlobal(totals[idx]) : 0;
+    };
+
+    const spear = get('spear');
+    const sword = get('sword');
+    const axe = get('axe');
+    const archer = get('archer');
+    const light = get('light');
+    const marcher = get('marcher');
+    const heavy = get('heavy');
+    const ram = get('ram');
+    const catapult = get('catapult');
+    const snob = get('snob');
+
+    return {
+      spear, sword, axe, archer, light, marcher, heavy, ram, catapult, snob,
+      offCorePop: axe * 1 + light * 4 + marcher * 5,
+      defCorePop: sword * 1 + heavy * 6,
+      defSupportPop: spear * 1 + sword * 1 + archer * 1 + heavy * 6,
+      ramPop: ram * 5,
+      snobCount: snob
+    };
+  }
+
+  function classifyTroopSummary(summary) {
+    if (!summary || !hasMeaningfulTroopData(summary)) return 'Unknown';
+
+    const hasNoble = summary.snobCount > 0;
+    const offCore = summary.offCorePop;
+    const defCore = summary.defCorePop;
+    const defSupport = summary.defSupportPop;
+
+    if (hasNoble && offCore > 0) return 'Offensive';
+    if (offCore >= OFFENSE_THRESHOLD) return 'Offensive';
+    if (offCore >= PROB_OFFENSE_THRESHOLD) return 'Probably Offensive';
+
+    if (hasNoble) return 'Probably Offensive';
+
+    if (defCore >= DEFENSE_THRESHOLD) return 'Defensive';
+    if (defCore >= PROB_DEFENSE_THRESHOLD) return 'Probably Defensive';
+    if (defSupport >= PROB_DEFENSE_THRESHOLD) return 'Probably Defensive';
+
+    if (summary.ramPop >= PROB_OFFENSE_THRESHOLD) return 'Probably Offensive';
+
+    return 'Unknown';
+  }
+
+  function isOffensiveType(type) {
+    return type === 'Offensive' || type === 'Probably Offensive';
+  }
+
+  function isDefensiveType(type) {
+    return type === 'Defensive' || type === 'Probably Defensive';
+  }
+
+  function typeBBCode(type, hasNoble) {
+    let out;
+    if (type === 'Offensive') out = '[color=#ff0000][b]▶ Attack[/b][/color]';
+    else if (type === 'Probably Offensive') out = '[color=#ff0000][b]▶ Probably Attack[/b][/color]';
+    else if (type === 'Defensive') out = '[color=#0000cc][b]▶ Defense[/b][/color]';
+    else if (type === 'Probably Defensive') out = '[color=#0000cc][b]▶ Probably Defense[/b][/color]';
+    else out = '[color=#777777][b]? Unknown[/b][/color]';
+
+    if (hasNoble) out += ' [unit]snob[/unit]';
+    return out;
   }
 
   const Notes = {
@@ -93,9 +172,9 @@
         playerWantsDefenderInfo: false
       },
       village: {
-        offensive: { id: "-1", type: "Unknown", troops: { totals: [], offensive: 0, defensive: 0 } },
+        offensive: { id: '-1', type: 'Unknown', troops: { totals: [], offensive: 0, defensive: 0 } },
         defensive: {
-          id: "-1", type: "Unknown",
+          id: '-1', type: 'Unknown', source: 'inside', bunkDetected: false, bunkPop: 0,
           troops: {
             visible: false,
             totals: [],
@@ -109,10 +188,32 @@
       world: { farmSpacePerUnit: [], archersEnabled: false }
     },
 
+    resetRuntimeData: function () {
+      this.data.player.playerIsAttacking = false;
+      this.data.player.playerIsDefending = false;
+      this.data.player.playerWantsAttackerInfo = false;
+      this.data.player.playerWantsDefenderInfo = false;
+
+      this.data.village.offensive = { id: '-1', type: 'Unknown', troops: { totals: [], offensive: 0, defensive: 0 } };
+      this.data.village.defensive = {
+        id: '-1', type: 'Unknown', source: 'inside', bunkDetected: false, bunkPop: 0,
+        troops: {
+          visible: false,
+          totals: [],
+          away: { visible: false, offensive: 0, defensive: 0, totals: [] },
+          inside: { offensive: 0, defensive: 0, totals: [] },
+          supports: 0
+        },
+        buildings: { visible: false, watchtower: [false, 0], firstChurch: [false, 0], church: [false, 0], wall: [false, 0] }
+      };
+      this.data.world.farmSpacePerUnit = [];
+      this.data.world.archersEnabled = false;
+    },
+
     verifyPage: function () {
       const match = window.location.href.match(/(screen\=report){1}|(view\=){1}\w+/g);
       if (match && match.length === 2) return true;
-      UI.ErrorMessage("This script can only be run on a report screen.", 5000);
+      UI.ErrorMessage('This script can only be run on a report screen.', 5000);
       return false;
     },
 
@@ -126,7 +227,7 @@
     },
 
     initUnitArrays: function () {
-      this.data.world.archersEnabled = game_data.units.includes("archer");
+      this.data.world.archersEnabled = game_data.units.includes('archer');
       if (this.data.world.archersEnabled) {
         this.data.village.offensive.troops.totals = new Array(UNIT_COUNT_WITH_ARCHERS).fill(0);
         this.data.village.defensive.troops.totals = new Array(UNIT_COUNT_WITH_ARCHERS).fill(0);
@@ -143,134 +244,141 @@
     },
 
     readPlayerInfo: function () {
-      const attackerName = $("#attack_info_att > tbody > tr:nth-child(1) > th:nth-child(2) > a").text();
-      const defenderName = $("#attack_info_def > tbody > tr:nth-child(1) > th:nth-child(2) > a").text();
-      let idx = 3;
-      if ("0" != game_data.player.sitter) idx = 4;
+      const attackerName = $('#attack_info_att > tbody > tr:nth-child(1) > th:nth-child(2) > a').text();
+      const defenderName = $('#attack_info_def > tbody > tr:nth-child(1) > th:nth-child(2) > a').text();
 
-      this.data.village.offensive.id = $("#attack_info_att > tbody > tr:nth-child(2) > td:nth-child(2) > span > a:nth-child(1)").url().split("=")[idx];
-      this.data.village.defensive.id = $("#attack_info_def > tbody > tr:nth-child(2) > td:nth-child(2) > span > a:nth-child(1)").url().split("=")[idx];
+      const getVillageId = (selector) => {
+        const a = document.querySelector(selector);
+        if (!a) return '-1';
+        try {
+          const u = new URL(a.href, location.origin);
+          return u.searchParams.get('id') || u.searchParams.get('village') || '-1';
+        } catch (e) {
+          return '-1';
+        }
+      };
 
-      if (defenderName == this.data.player.name) {
+      this.data.village.offensive.id = getVillageId('#attack_info_att > tbody > tr:nth-child(2) > td:nth-child(2) > span > a:nth-child(1)');
+      this.data.village.defensive.id = getVillageId('#attack_info_def > tbody > tr:nth-child(2) > td:nth-child(2) > span > a:nth-child(1)');
+
+      if (defenderName === this.data.player.name) {
         this.data.player.playerIsDefending = true;
-      } else if (attackerName == this.data.player.name) {
+      } else if (attackerName === this.data.player.name) {
         this.data.player.playerIsAttacking = true;
       }
     },
 
     readTroopsAway: function () {
-      if (!$("#attack_spy_away > tbody > tr:nth-child(1) > th").length) return;
-
+      if (!$('#attack_spy_away > tbody > tr:nth-child(1) > th').length) return;
       this.data.village.defensive.troops.away.visible = true;
 
       const self = this;
-      const selector = "#attack_spy_away > tbody > tr:nth-child(2) > td > table > tbody > tr:nth-child(2) > td";
+      const selector = '#attack_spy_away > tbody > tr:nth-child(2) > td > table > tbody > tr:nth-child(2) > td';
       $(selector).each(function (idx, cell) {
-        const count = parseInt(cell.textContent);
-        if (idx < self.data.village.defensive.troops.totals.length) {
+        const count = getCountFromCell(cell);
+        if (idx < self.data.village.defensive.troops.away.totals.length) {
           self.data.village.defensive.troops.away.totals[idx] = count;
         }
-
-        const unitName = getUnitNameFromCell(cell, idx);
-        if (unitName) addUnitPower(self.data.village.defensive.troops.away, unitName, count);
+        addUnitPowerByOriginalIndex(self.data.village.defensive.troops.away, idx, count, self.data.world.archersEnabled, 'defender');
       });
     },
 
     readTroopsInside: function () {
-      if (!$("#attack_info_def_units > tbody > tr:nth-child(2) > td").length) return;
+      if (!$('#attack_info_def_units > tbody > tr:nth-child(2) > td').length) return;
       this.data.village.defensive.troops.visible = true;
 
       const self = this;
-      const selector = "#attack_info_def_units > tbody > tr:nth-child(2) > td.unit-item";
+      const selector = '#attack_info_def_units > tbody > tr:nth-child(2) > td.unit-item';
       $(selector).each(function (idx, cell) {
-        const count = parseInt(cell.textContent);
-        if (idx < self.data.village.defensive.troops.totals.length) {
+        const count = getCountFromCell(cell);
+        if (idx < self.data.village.defensive.troops.inside.totals.length) {
           self.data.village.defensive.troops.inside.totals[idx] = count;
         }
-
-        const unitName = getUnitNameFromCell(cell, idx);
-        if (unitName) addUnitPower(self.data.village.defensive.troops.inside, unitName, count);
+        addUnitPowerByOriginalIndex(self.data.village.defensive.troops.inside, idx, count, self.data.world.archersEnabled, 'defender');
       });
     },
 
     readTroopsAttacker: function () {
       const self = this;
-      const selector = "#attack_info_att_units > tbody > tr:nth-child(2) > td.unit-item";
+      const selector = '#attack_info_att_units > tbody > tr:nth-child(2) > td.unit-item';
       $(selector).each(function (idx, cell) {
-        const count = parseInt(cell.textContent);
+        const count = getCountFromCell(cell);
         if (idx < self.data.village.offensive.troops.totals.length) {
           self.data.village.offensive.troops.totals[idx] = count;
         }
-
-        const unitName = getUnitNameFromCell(cell, idx);
-        if (unitName) addUnitPower(self.data.village.offensive.troops, unitName, count);
+        addUnitPowerByOriginalIndex(self.data.village.offensive.troops, idx, count, self.data.world.archersEnabled, 'attacker');
       });
     },
 
     readBuildings: function () {
-      if (!$("#attack_spy_buildings_left > tbody > tr:nth-child(1) > th:nth-child(1)").length) return;
+      if (!$('#attack_spy_buildings_left > tbody > tr:nth-child(1) > th:nth-child(1)').length) return;
       this.data.village.defensive.buildings.visible = true;
 
       const self = this;
-      $("table[id^='attack_spy_buildings_'] > tbody > tr:gt(0) > td > img").each(function (idx, img) {
-        const code = img.src.split("/")[7].replace(".png", "");
-        const level = parseInt(img.parentNode.parentNode.childNodes[3].textContent);
+      $('table[id^="attack_spy_buildings_"] > tbody > tr:gt(0) > td > img').each(function (idx, img) {
+        let code = '';
+        try {
+          code = new URL(img.src, location.origin).pathname.split('/').pop().replace(/\.(png|webp)$/i, '');
+        } catch (e) {
+          code = (img.src || '').split('/').pop().replace(/\.(png|webp)$/i, '');
+        }
 
-        if (code == "watchtower") self.data.village.defensive.buildings.watchtower = [true, level];
-        else if (code == "church_f") self.data.village.defensive.buildings.firstChurch = [true, level];
-        else if (code == "church") self.data.village.defensive.buildings.church = [true, level];
-        else if (code == "wall") self.data.village.defensive.buildings.wall = [true, level];
+        const level = parseIntOrZeroGlobal(img.parentNode.parentNode.childNodes[3].textContent);
+        if (code === 'watchtower') self.data.village.defensive.buildings.watchtower = [true, level];
+        else if (code === 'church_f') self.data.village.defensive.buildings.firstChurch = [true, level];
+        else if (code === 'church') self.data.village.defensive.buildings.church = [true, level];
+        else if (code === 'wall') self.data.village.defensive.buildings.wall = [true, level];
       });
     },
 
     getVillageType: function () {
-      if (this.data.village.defensive.troops.visible) {
-        if (this.data.village.defensive.troops.inside.offensive > OFFENSE_THRESHOLD) {
-          this.data.village.defensive.type = "Offensive";
-        } else if (this.data.village.defensive.troops.inside.offensive > PROB_OFFENSE_THRESHOLD) {
-          this.data.village.defensive.type = "Probably Offensive";
-        } else if (this.data.village.defensive.troops.inside.defensive > DEFENSE_THRESHOLD) {
-          this.data.village.defensive.type = "Defensive";
-        } else if (this.data.village.defensive.troops.inside.defensive > PROB_DEFENSE_THRESHOLD) {
-          this.data.village.defensive.type = "Probably Defensive";
-        } else {
-          this.data.village.defensive.type = "Unknown";
+      const archersEnabled = this.data.world.archersEnabled;
+      const insideSummary = summarizeTotals(this.data.village.defensive.troops.inside.totals, archersEnabled);
+      const awaySummary = summarizeTotals(this.data.village.defensive.troops.away.totals, archersEnabled);
+      const attackerSummary = summarizeTotals(this.data.village.offensive.troops.totals, archersEnabled);
+
+      this.data.village.defensive.insideSummary = insideSummary;
+      this.data.village.defensive.awaySummary = awaySummary;
+      this.data.village.offensive.summary = attackerSummary;
+
+      this.data.village.defensive.bunkPop = insideSummary.defSupportPop;
+      this.data.village.defensive.bunkDetected = this.data.village.defensive.troops.visible && insideSummary.defSupportPop >= BUNK_DEF_POP_THRESHOLD;
+
+      let chosenSummary = insideSummary;
+      let chosenType = 'Unknown';
+      let source = 'inside';
+
+      if (this.data.village.defensive.troops.away.visible && hasMeaningfulTroopData(awaySummary)) {
+        const awayType = classifyTroopSummary(awaySummary);
+        if (awayType !== 'Unknown') {
+          chosenSummary = awaySummary;
+          chosenType = awayType;
+          source = 'away';
         }
+      }
+
+      if (chosenType === 'Unknown') {
+        chosenSummary = insideSummary;
+        chosenType = this.data.village.defensive.troops.visible ? classifyTroopSummary(insideSummary) : 'No troops survived';
+        source = 'inside';
+      }
+
+      this.data.village.defensive.type = chosenType;
+      this.data.village.defensive.source = source;
+      this.data.village.defensive.chosenSummary = chosenSummary;
+
+      if (attackerSummary.offCorePop > attackerSummary.defSupportPop) {
+        this.data.village.offensive.type = 'Offensive';
+      } else if (attackerSummary.offCorePop < attackerSummary.defSupportPop) {
+        this.data.village.offensive.type = 'Defensive';
+      } else if (attackerSummary.snobCount > 0) {
+        this.data.village.offensive.type = 'Probably Offensive';
       } else {
-        this.data.village.defensive.type = "No troops survived";
-      }
-
-      if (this.data.village.defensive.troops.away.visible) {
-        if (this.data.village.defensive.troops.away.offensive > OFFENSE_THRESHOLD) {
-          this.data.village.defensive.type = "Offensive";
-        } else if (this.data.village.defensive.troops.away.offensive > 1000) {
-          this.data.village.defensive.type = "Probably Offensive";
-        } else if (this.data.village.defensive.troops.away.defensive > DEFENSE_THRESHOLD) {
-          this.data.village.defensive.type = "Defensive";
-        } else if (this.data.village.defensive.troops.away.defensive > PROB_DEFENSE_THRESHOLD) {
-          this.data.village.defensive.type = "Probably Defensive";
-        } else if (this.data.village.defensive.troops.away.defensive + this.data.village.defensive.troops.away.offensive > 1000) {
-          if (this.data.village.defensive.troops.away.offensive > this.data.village.defensive.troops.away.defensive) {
-            this.data.village.defensive.type = "Probably Offensive";
-          } else if (this.data.village.defensive.troops.away.defensive >= this.data.village.defensive.troops.away.offensive) {
-            this.data.village.defensive.type = "Probably Defensive";
-          }
-        }
-      }
-
-      if (this.data.village.offensive.troops.offensive > this.data.village.offensive.troops.defensive) {
-        this.data.village.offensive.type = "Offensive";
-      } else if (this.data.village.offensive.troops.offensive < this.data.village.offensive.troops.defensive) {
-        this.data.village.offensive.type = "Defensive";
+        this.data.village.offensive.type = 'Unknown';
       }
     },
 
-    parseIntOrZero: function (s) {
-      if (s === undefined || s === null) return 0;
-      if (typeof s === 'number') return s | 0;
-      const cleaned = String(s).replace(/\D/g, '');
-      return parseInt(cleaned || '0', 10) || 0;
-    },
+    parseIntOrZero: parseIntOrZeroGlobal,
 
     formatClearsForDisplay: function (n) {
       if (typeof n !== 'number' || n <= 0) return String(n || 0);
@@ -292,7 +400,6 @@
 
         const unitTds = Array.from(unitsRow.querySelectorAll('td')).slice(1);
         const lossTds = Array.from(lossesRow.querySelectorAll('td')).slice(1);
-
         if (unitTds.length === 0 || unitTds.length !== lossTds.length) return false;
 
         for (let i = 0; i < unitTds.length; i++) {
@@ -345,25 +452,17 @@
         const simToVar = {
           spear: 'sp', sword: 'sw', axe: 'ax', spy: 'scout',
           light: 'lc', heavy: 'hv', ram: 'ram', catapult: 'cat',
-          snob: 'noble', archer: 'arc', harc: 'harc', militia: 'militia'
+          snob: 'noble', archer: 'arc', harc: 'harc', marcher: 'harc', militia: 'militia'
         };
+
+        const configured = { sp, sw, ax, arc, scout, lc, harc, hv, cat, ram, noble: 0, militia: 0 };
 
         const attInputs = Array.from(form.querySelectorAll('input[name^="att_"], select[name^="att_"], textarea[name^="att_"]'));
         attInputs.forEach(inp => {
           const name = inp.getAttribute('name');
           const unit = name.replace(/^att_/, '');
           const varName = simToVar[unit];
-          let valueToSet = 0;
-          if (varName && typeof window[varName] !== 'undefined') {
-            valueToSet = window[varName] || 0;
-          } else {
-            if (unit === 'spear') valueToSet = sp;
-            else if (unit === 'sword') valueToSet = sw;
-            else if (unit === 'axe') valueToSet = ax;
-            else if (unit === 'light') valueToSet = lc;
-            else if (unit === 'ram') valueToSet = ram;
-            else if (unit === 'catapult') valueToSet = cat;
-          }
+          const valueToSet = varName ? (configured[varName] || 0) : 0;
           try {
             inp.value = String(Number(valueToSet) || 0);
             inp.setAttribute('value', String(Number(valueToSet) || 0));
@@ -421,9 +520,7 @@
           }
         });
 
-        if (!form.querySelector('input[name="luck"]')) {
-          payload.set('luck', String(luckValue));
-        }
+        if (!form.querySelector('input[name="luck"]')) payload.set('luck', String(luckValue));
 
         const action = form.getAttribute('action') || '/game.php';
         const actionUrl = new URL(action, location.origin).toString();
@@ -434,7 +531,6 @@
           headers: { 'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8' },
           body: payload.toString()
         });
-
         if (!postResp.ok) return null;
 
         const postHtml = await postResp.text();
@@ -453,7 +549,7 @@
           }
         }
 
-        if (foundAdditional === null) return 1;
+        if (foundAdditional === null) return null;
         return 1 + foundAdditional;
       } catch (e) {
         return null;
@@ -481,9 +577,7 @@
         publishUrl.searchParams.set('screen', 'report');
         publishUrl.searchParams.set('mode', 'publish');
         publishUrl.searchParams.set('report_id', reportId);
-        if (game_data && game_data.village && game_data.village.id) {
-          publishUrl.searchParams.set('village', game_data.village.id);
-        }
+        if (game_data && game_data.village && game_data.village.id) publishUrl.searchParams.set('village', game_data.village.id);
 
         const pageResp = await fetch(publishUrl.toString(), { credentials: 'include' });
         if (!pageResp.ok) return null;
@@ -501,38 +595,15 @@
         const reportVal = reportInput ? reportInput.value : reportId;
 
         const show = (name, on) => on ? [`show[${name}]`, '1'] : null;
-
-        const opts =
-          caseType === "A"
-            ? [
-                show('own_coords', true),
-                show('own_units', false),
-                show('own_losses', false),
-                show('opp_coords', true),
-                show('opp_units', true),
-                show('opp_losses', true),
-                show('buildings', true),
-                show('carry', false)
-              ]
-            : [
-                show('own_coords', true),
-                show('own_units', false),
-                show('own_losses', false),
-                show('opp_coords', true),
-                show('opp_units', true),
-                show('opp_losses', true),
-                show('buildings', false),
-                show('carry', false)
-              ];
+        const opts = caseType === 'A'
+          ? [show('own_coords', true), show('own_units', false), show('own_losses', false), show('opp_coords', true), show('opp_units', true), show('opp_losses', true), show('buildings', true), show('carry', false)]
+          : [show('own_coords', true), show('own_units', false), show('own_losses', false), show('opp_coords', true), show('opp_units', true), show('opp_losses', true), show('buildings', false), show('carry', false)];
 
         const payload = new URLSearchParams();
         payload.set('report_id', reportVal);
         if (hVal) payload.set('h', hVal);
         payload.set('publish', '1');
-
-        opts.forEach(o => {
-          if (o) payload.set(o[0], o[1]);
-        });
+        opts.forEach(o => { if (o) payload.set(o[0], o[1]); });
 
         const action = form.getAttribute('action') || publishUrl.toString();
         const actionUrl = new URL(action, location.origin).toString();
@@ -546,7 +617,6 @@
         if (!postResp.ok) return null;
 
         const postHtml = await postResp.text();
-
         let match = postHtml.match(/https?:\/\/[^\s"'<>]*public_report\/[a-f0-9]+/i);
         if (match && match[0]) return match[0];
 
@@ -559,55 +629,77 @@
       }
     },
 
+    buildBuildingParts: function () {
+      const b = this.data.village.defensive.buildings;
+      const parts = [];
+
+      if (b.watchtower[0]) parts.push('[building]watchtower[/building] ' + b.watchtower[1]);
+      if (b.firstChurch[0]) parts.push('[building]church_f[/building]');
+      if (b.church[0]) parts.push('[building]church[/building] ' + b.church[1]);
+
+      return parts;
+    },
+
+    getDefensiveUnitPartsForBunk: function () {
+      const totals = this.data.village.defensive.troops.inside.totals || [];
+      const archersEnabled = this.data.world.archersEnabled;
+      const units = archersEnabled
+        ? ['spear', 'sword', 'archer', 'heavy']
+        : ['spear', 'sword', 'heavy'];
+
+      const parts = [];
+      units.forEach(unit => {
+        const idx = (archersEnabled ? UNIT_NAMES_WITH_ARCHERS : UNIT_NAMES_NO_ARCHERS).indexOf(unit);
+        const count = idx >= 0 ? parseIntOrZeroGlobal(totals[idx]) : 0;
+        if (count > 0) parts.push('[unit]' + unit + '[/unit] ' + formatK(count));
+      });
+      return parts;
+    },
+
     createNoteText: async function () {
-      let villageType;
-      const titleText = $("#content_value > table > tbody > tr > td:nth-child(2) > table > tbody > tr > td > table:nth-child(2) > tbody > tr:nth-child(2)")
-        .text().replace(/\s+/g, " ").replace(/.{5}$/g, "");
-      let note = "";
+      let villageType = 'Unknown';
+      let hasNoble = false;
+      let note = '';
+      const isDefenderSide = this.data.player.playerIsAttacking || this.data.player.playerWantsDefenderInfo;
 
-      if (this.data.player.playerIsAttacking || this.data.player.playerWantsDefenderInfo) {
-        villageType = this.data.village.defensive.type;
-      }
-      if (!this.data.player.playerIsAttacking || this.data.player.playerWantsAttackerInfo) {
-        villageType = this.data.village.offensive.type;
-      }
-      if (!this.data.player.playerIsAttacking && this.data.player.playerWantsDefenderInfo) {
-        villageType = this.data.village.defensive.type;
-      }
+      if (this.data.player.playerIsAttacking || this.data.player.playerWantsDefenderInfo) villageType = this.data.village.defensive.type;
+      if (!this.data.player.playerIsAttacking || this.data.player.playerWantsAttackerInfo) villageType = this.data.village.offensive.type;
+      if (!this.data.player.playerIsAttacking && this.data.player.playerWantsDefenderInfo) villageType = this.data.village.defensive.type;
 
-      const isOffense = (villageType === "Offensive" || villageType === "Probably Offensive");
-      const color = isOffense ? "ff0000" : "0000ff";
-      const typeIcon = isOffense ? "[unit]axe[/unit]" : "[unit]sword[/unit]";
-      note += "[color=#" + color + "][b][size=11]" + villageType + "[/size][/b][/color] " + typeIcon + " ";
-
-      if (this.data.player.playerIsAttacking || this.data.player.playerWantsDefenderInfo) {
-        if (this.data.village.defensive.buildings.watchtower[0]) note += "[building]watchtower[/building] Watchtower [building]watchtower[/building] " + this.data.village.defensive.buildings.watchtower[1] + " | ";
-        if (this.data.village.defensive.buildings.wall[0]) note += "[building]wall[/building][color=#5c3600][b] Wall " + this.data.village.defensive.buildings.wall[1] + "[/b][/color] | ";
-        if (this.data.village.defensive.buildings.firstChurch[0]) note += "[building]church_f[/building] First church [building]church[/building] | ";
-        if (this.data.village.defensive.buildings.church[0]) note += "[building]church_f[/building] Church [building]church[/building] " + this.data.village.defensive.buildings.church[1] + " | ";
+      if (isDefenderSide) {
+        const chosen = this.data.village.defensive.chosenSummary || this.data.village.defensive.insideSummary;
+        hasNoble = !!(chosen && chosen.snobCount > 0);
+      } else {
+        hasNoble = !!(this.data.village.offensive.summary && this.data.village.offensive.summary.snobCount > 0);
       }
 
-      if (this.data.player.playerIsAttacking) {
+      const headerParts = [typeBBCode(villageType, hasNoble)];
+      if (isDefenderSide) headerParts.push(...this.buildBuildingParts());
+      note += headerParts.join(' | ');
+
+      if (isDefenderSide && this.data.village.defensive.bunkDetected) {
+        const bunkParts = ['[color=#d07000][b]Bunk (' + formatK(this.data.village.defensive.bunkPop) + ')[/b][/color]'];
+        bunkParts.push(...this.getDefensiveUnitPartsForBunk());
+
         const clears = await this.estimateClears();
-        if (typeof clears === "number") {
-          note += "Clears needed: " + this.formatClearsForDisplay(clears) + " [img]https://dspt.innogamescdn.com/asset/af1188db/graphic/command/attack_large.webp[/img] ";
+        if (typeof clears === 'number') {
+          bunkParts.push('Clears needed: ' + this.formatClearsForDisplay(clears) + ' [img]https://dspt.innogamescdn.com/asset/af1188db/graphic/command/attack_large.webp[/img]');
         }
+
+        note += '\n\n' + bunkParts.join(' | ');
       }
 
-      note += "\n\n[b]" + titleText + "[/b]\n\n";
+      note += '\n\n';
 
-      const caseType = this.data.player.playerIsAttacking ? "A" : "B";
+      const caseType = this.data.player.playerIsAttacking ? 'A' : 'B';
       const link = await this.publishReportAndGetLink(caseType);
 
       if (link) {
-        note += "[spoiler=Spoiler][report_display]" + link + "[/report_display][/spoiler]";
+        note += '[spoiler=Spoiler][report_display]' + link + '[/report_display][/spoiler]';
       } else {
-        const reportExport = $("#report_export_code").text().trim();
-        if (reportExport) {
-          note += "[spoiler=Spoiler]" + reportExport + "[/spoiler]";
-        } else {
-          note += "[b]Public report not generated.[/b]";
-        }
+        const reportExport = $('#report_export_code').text().trim();
+        if (reportExport) note += '[spoiler=Spoiler]' + reportExport + '[/spoiler]';
+        else note += '[b]Public report not generated.[/b]';
       }
 
       return note;
@@ -616,9 +708,9 @@
     writeNote: async function () {
       let noteText;
       let villageId;
-      const url = "0" == game_data.player.sitter
-        ? "https://" + location.hostname + "/game.php?village=" + game_data.village.id + "&screen=api&ajaxaction=village_note_edit&h=" + game_data.csrf + "&client_time=" + Math.round(Timing.getCurrentServerTime() / 1e3)
-        : "https://" + location.hostname + "/game.php?village=" + game_data.village.id + "&screen=api&ajaxaction=village_note_edit&t=" + game_data.player.id;
+      const url = '0' == game_data.player.sitter
+        ? 'https://' + location.hostname + '/game.php?village=' + game_data.village.id + '&screen=api&ajaxaction=village_note_edit&h=' + game_data.csrf + '&client_time=' + Math.round(Timing.getCurrentServerTime() / 1e3)
+        : 'https://' + location.hostname + '/game.php?village=' + game_data.village.id + '&screen=api&ajaxaction=village_note_edit&t=' + game_data.player.id;
 
       if (this.data.player.playerIsAttacking || this.data.player.playerIsDefending) {
         villageId = this.data.player.playerIsAttacking || this.data.player.playerWantsDefenderInfo
@@ -627,28 +719,28 @@
 
         noteText = await this.createNoteText();
         $.post(url, { note: noteText, village_id: villageId, h: game_data.csrf }, function () {
-          UI.SuccessMessage("Note created", 2000);
+          UI.SuccessMessage('Note created', 2000);
         });
       } else {
         const text = $('<div class="center"> Add report to which village: </div>');
         const buttons = $('<div class="center"><button class="btn btn-confirm-yes atk">Attacker</button><button class="btn btn-confirm-yes def">Defender</button></div>');
         const modal = text.add(buttons);
-        Dialog.show("report_notes", modal);
+        Dialog.show('report_notes', modal);
 
-        buttons.find("button.atk").click(async function () {
+        buttons.find('button.atk').click(async function () {
           Notes.data.player.playerWantsAttackerInfo = true;
           noteText = await Notes.createNoteText();
           $.post(url, { note: noteText, village_id: Notes.data.village.offensive.id, h: game_data.csrf }, function () {
-            UI.SuccessMessage("Note created", 2000);
+            UI.SuccessMessage('Note created', 2000);
           });
           Dialog.close();
         });
 
-        buttons.find("button.def").click(async function () {
+        buttons.find('button.def').click(async function () {
           Notes.data.player.playerWantsDefenderInfo = true;
           noteText = await Notes.createNoteText();
           $.post(url, { note: noteText, village_id: Notes.data.village.defensive.id, h: game_data.csrf }, function () {
-            UI.SuccessMessage("Note created", 2000);
+            UI.SuccessMessage('Note created', 2000);
           });
           Dialog.close();
         });
@@ -657,6 +749,7 @@
 
     start: async function () {
       if (!this.verifyPage()) return;
+      this.resetRuntimeData();
       this.initData();
       this.getVillageType();
       await this.writeNote();

@@ -29,10 +29,10 @@
   const MAX_CLEARS = 100;
   // =======================================
 
-  const OFFENSE_THRESHOLD = 3000;
-  const PROB_OFFENSE_THRESHOLD = 200;
+  const OFFENSE_THRESHOLD = 1000;
+  const PROB_OFFENSE_THRESHOLD = 100;
   const DEFENSE_THRESHOLD = 1000;
-  const PROB_DEFENSE_THRESHOLD = 200;
+  const PROB_DEFENSE_THRESHOLD = 100;
   const BUNK_DEF_POP_THRESHOLD = 25000;
 
   const FARM_SPACE_WITH_ARCHERS = [1,1,1,1,2,4,5,6,5,8];

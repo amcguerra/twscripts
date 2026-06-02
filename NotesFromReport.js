@@ -1,6 +1,16 @@
 (function () {
   'use strict';
 
+  const DEBUG = true;
+  const DEBUG_PREFIX = '[TW Report Notes]';
+
+  function debugLog(label, data) {
+    if (!DEBUG || typeof console === 'undefined') return;
+    try {
+      console.log(DEBUG_PREFIX + ' ' + label, data);
+    } catch (e) {}
+  }
+
   // ======= CLEARS SIMULATION CONFIG =======
   const sp = 0;
   const sw = 0;
@@ -376,6 +386,18 @@
       } else {
         this.data.village.offensive.type = 'Unknown';
       }
+
+      debugLog('Classification', {
+        archersEnabled: archersEnabled,
+        typeSource: this.data.village.defensive.source,
+        defenderType: this.data.village.defensive.type,
+        attackerType: this.data.village.offensive.type,
+        bunkDetected: this.data.village.defensive.bunkDetected,
+        bunkPop: this.data.village.defensive.bunkPop,
+        inside: insideSummary,
+        away: awaySummary,
+        attacker: attackerSummary
+      });
     },
 
     parseIntOrZero: parseIntOrZeroGlobal,
@@ -643,15 +665,20 @@
     getDefensiveUnitPartsForBunk: function () {
       const totals = this.data.village.defensive.troops.inside.totals || [];
       const archersEnabled = this.data.world.archersEnabled;
+      const names = archersEnabled ? UNIT_NAMES_WITH_ARCHERS : UNIT_NAMES_NO_ARCHERS;
       const units = archersEnabled
-        ? ['spear', 'sword', 'archer', 'heavy']
-        : ['spear', 'sword', 'heavy'];
+        ? ['spear', 'sword', 'archer', 'heavy', 'catapult']
+        : ['spear', 'sword', 'heavy', 'catapult'];
 
       const parts = [];
       units.forEach(unit => {
-        const idx = (archersEnabled ? UNIT_NAMES_WITH_ARCHERS : UNIT_NAMES_NO_ARCHERS).indexOf(unit);
+        const idx = names.indexOf(unit);
         const count = idx >= 0 ? parseIntOrZeroGlobal(totals[idx]) : 0;
-        if (count > 0) parts.push('[unit]' + unit + '[/unit] ' + formatK(count));
+        if (unit === 'catapult') {
+          if (count >= 1000) parts.push('[unit]catapult[/unit] ' + formatK(count));
+        } else if (count > 0) {
+          parts.push('[unit]' + unit + '[/unit] ' + formatK(count));
+        }
       });
       return parts;
     },
@@ -683,7 +710,7 @@
 
         const clears = await this.estimateClears();
         if (typeof clears === 'number') {
-          bunkParts.push('Clears needed: ' + this.formatClearsForDisplay(clears) + ' [img]https://dspt.innogamescdn.com/asset/af1188db/graphic/command/attack_large.webp[/img]');
+          bunkParts.push('Clears: ' + this.formatClearsForDisplay(clears) + ' [img]https://dspt.innogamescdn.com/asset/af1188db/graphic/command/attack_large.webp[/img]');
         }
 
         note += '\n\n' + bunkParts.join(' | ');
@@ -701,6 +728,14 @@
         if (reportExport) note += '[spoiler=Spoiler]' + reportExport + '[/spoiler]';
         else note += '[b]Public report not generated.[/b]';
       }
+
+      debugLog('Note text generated', {
+        isDefenderSide: isDefenderSide,
+        villageType: villageType,
+        hasNoble: hasNoble,
+        bunkDetected: this.data.village.defensive.bunkDetected,
+        note: note
+      });
 
       return note;
     },

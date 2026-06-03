@@ -14,7 +14,7 @@
   // ======= CLEARS SIMULATION CONFIG =======
   const sp = 0;
   const sw = 0;
-  const ax = 6500;
+  const ax = 6000;
   const arc = 0;
   const scout = 0;
   const lc = 2500;
@@ -192,7 +192,7 @@
             inside: { offensive: 0, defensive: 0, totals: [] },
             supports: 0
           },
-          buildings: { visible: false, watchtower: [false, 0], firstChurch: [false, 0], church: [false, 0], wall: [false, 0] }
+          buildings: { visible: false, watchtower: [false, 0], firstChurch: [false, 0], church: [false, 0], wall: [false, 0], wallDamage: [false, 0, 0] }
         }
       },
       world: { farmSpacePerUnit: [], archersEnabled: false }
@@ -214,7 +214,7 @@
           inside: { offensive: 0, defensive: 0, totals: [] },
           supports: 0
         },
-        buildings: { visible: false, watchtower: [false, 0], firstChurch: [false, 0], church: [false, 0], wall: [false, 0] }
+        buildings: { visible: false, watchtower: [false, 0], firstChurch: [false, 0], church: [false, 0], wall: [false, 0], wallDamage: [false, 0, 0] }
       };
       this.data.world.farmSpacePerUnit = [];
       this.data.world.archersEnabled = false;
@@ -234,6 +234,7 @@
       this.readTroopsInside();
       this.readTroopsAttacker();
       this.readBuildings();
+      this.readWallDamage();
     },
 
     initUnitArrays: function () {
@@ -339,6 +340,20 @@
         else if (code === 'church') self.data.village.defensive.buildings.church = [true, level];
         else if (code === 'wall') self.data.village.defensive.buildings.wall = [true, level];
       });
+    },
+
+    readWallDamage: function () {
+      const text = (document.body && document.body.textContent) ? document.body.textContent.replace(/\s+/g, ' ') : '';
+      let match = text.match(/Muralha\s+danificada\s+do\s+n[íi]vel\s+(\d+)\s+para\s+o\s+n[íi]vel\s+(\d+)/i);
+      if (!match) match = text.match(/Wall\s+damaged\s+from\s+level\s+(\d+)\s+to\s+level\s+(\d+)/i);
+      if (!match) match = text.match(/Wall[^\d]{0,80}(\d+)\s*(?:➜|->|→|>|para|to)\s*(\d+)/i);
+      if (!match) return;
+
+      const fromLevel = parseIntOrZeroGlobal(match[1]);
+      const toLevel = parseIntOrZeroGlobal(match[2]);
+      if (fromLevel > 0 && toLevel >= 0 && fromLevel !== toLevel) {
+        this.data.village.defensive.buildings.wallDamage = [true, fromLevel, toLevel];
+      }
     },
 
     getVillageType: function () {
@@ -655,6 +670,7 @@
       const b = this.data.village.defensive.buildings;
       const parts = [];
 
+      if (b.wallDamage && b.wallDamage[0]) parts.push('[building]wall[/building] [color=#d0a000][b]' + b.wallDamage[1] + ' ➜ ' + b.wallDamage[2] + '[/b][/color]');
       if (b.watchtower[0]) parts.push('[building]watchtower[/building] ' + b.watchtower[1]);
       if (b.firstChurch[0]) parts.push('[building]church_f[/building]');
       if (b.church[0]) parts.push('[building]church[/building] ' + b.church[1]);
@@ -811,8 +827,7 @@
     const ready =
       document.querySelector('#attack_info_att') &&
       document.querySelector('#attack_info_def') &&
-      document.querySelector('#attack_info_att_units') &&
-      document.querySelector('#attack_info_def_units');
+      document.querySelector('#attack_info_att_units');
 
     if (ready) {
       Notes.start();

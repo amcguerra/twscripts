@@ -1,69 +1,261 @@
 // made by Costache Madalin (lllll llll)
 // discord: costache madalin#8472
+// original by Costache • optimized by amc
 
 
 
 
-
-var countApiKey = "resource_balancer";
-var countNameSpace="madalinoTribalWarsScripts"
 
 if(typeof(TWMap) !="undefined" )
     var  originalSpawnSector = TWMap.mapHandler.spawnSector;
 
-
-    var headerWood="#001a33"
-    var headerWoodEven="#002e5a"
-    var headerStone="#3b3b00"
-    var headerStoneEven="#626200"
-    var headerIron="#1e003b"
-    var headerIronEven="#3c0076"
+var textColor = "#2b1b08";
+var widthInterface = (game_data.device != "desktop") ? 98 : 50;//percentage
     
-    
-    var defaultTheme= '[["theme1",["#E0E0E0","#000000","#C5979D","#2B193D","#2C365E","#484D6D","#4B8F8C","50"]],["currentTheme","theme1"],["theme2",["#E0E0E0","#000000","#F76F8E","#113537","#37505C","#445552","#294D4A","50"]],["theme3",["#E0E0E0","#000000","#ACFCD9","#190933","#665687","#7C77B9","#623B5A","50"]],["theme4",["#E0E0E0","#000000","#181F1C","#60712F","#274029","#315C2B","#214F4B","50"]],["theme5",["#E0E0E0","#000000","#9AD1D4","#007EA7","#003249","#1F5673","#1C448E","50"]],["theme6",["#E0E0E0","#000000","#EA8C55","#81171B","#540804","#710627","#9E1946","50"]],["theme7",["#E0E0E0","#000000","#754043","#37423D","#171614","#3A2618","#523A34","50"]],["theme8",["#E0E0E0","#000000","#9E0031","#8E0045","#44001A","#600047","#770058","50"]],["theme9",["#E0E0E0","#000000","#C1BDB3","#5F5B6B","#323031","#3D3B3C","#575366","50"]],["theme10",["#E0E0E0","#000000","#E6BCCD","#29274C","#012A36","#14453D","#7E52A0","50"]]]'
-    var localStorageThemeName = "resBalancerTheme"
-    if(localStorage.getItem(localStorageThemeName)!=undefined){
-        let mapTheme = new Map(JSON.parse(localStorage.getItem(localStorageThemeName)))
-        Array.from(mapTheme.keys()).forEach((key)=>{
-            if(key!="currentTheme"){
-                let listColors=mapTheme.get(key);
-                if(listColors.length == 7){
-                    listColors.push(50);
-                    mapTheme.set(key,listColors)
-                }
-            }
-        })
-        localStorage.setItem(localStorageThemeName, JSON.stringify(Array.from(mapTheme.entries())))
-    }
-
-    var textColor="#ffffff"
-    var backgroundInput="#000000"
-    
-    var borderColor = "#C5979D";//#026440
-    var backgroundContainer="#2B193D"
-    var backgroundHeader="#2C365E"
-    var backgroundMainTable="#484D6D"
-    var backgroundInnerTable="#4B8F8C"
-    
-    var widthInterface=50;//percentage
-    var headerColorDarken=-50 //percentage( how much the header should be darker) if it's with -(darker) + (lighter)
-    var headerColorAlternateTable=-30;
-    var headerColorAlternateHover=30;
-    
-    var backgroundAlternateTableEven=backgroundContainer;
-    var backgroundAlternateTableOdd=getColorDarker(backgroundContainer,headerColorAlternateTable);
-    
-    async function main(){
-        initializationTheme()
-        await $.getScript("https://dl.dropboxusercontent.com/s/i5c0so9hwsizogm/styleCSSGlobal.js?dl=0");
-
-        createMainInterface()
-        changeTheme()
-        hitCountApi()
+    function main(){
+        addCssStyle();
+        createMainInterface();
     }
     main()
     
     
+
+function addCssStyle(){
+    document.getElementById("resource_balancer_css")?.remove();
+
+    const cssStyle = `
+        #div_container.scriptContainer {
+            width: ${widthInterface}%;
+            height: auto !important;
+            min-height: unset !important;
+            aspect-ratio: auto !important;
+            background: #f1e3bd;
+            border: 2px solid #5b3a16;
+            border-radius: 2px;
+            box-shadow: 0 4px 14px rgba(0,0,0,.55);
+            cursor: move;
+            z-index: 99999;
+            font-family: Verdana, Arial, sans-serif;
+            color: #2b1b08;
+            overflow: hidden !important;
+        }
+
+        #div_container .scriptHeader {
+            background:
+                linear-gradient(to bottom, rgba(255,255,255,.12), rgba(0,0,0,.18)),
+                #7b4a18;
+            color: #f9e7b7;
+            border-bottom: 2px solid #3d260d;
+            min-height: 32px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-shadow: 1px 1px #000;
+        }
+
+        #div_container .scriptHeader h2 {
+            font-size: 15px;
+            margin: 0;
+            letter-spacing: .2px;
+            line-height: 32px;
+        }
+
+        #div_container .scriptFooter {
+            background:
+                linear-gradient(to bottom, rgba(255,255,255,.08), rgba(0,0,0,.18)),
+                #6e4215;
+            color: #f9e7b7;
+            border-top: 1px solid #3d260d;
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            padding: 3px 10px;
+            min-height: 22px;
+            box-sizing: border-box;
+            text-shadow: 1px 1px #000;
+        }
+
+        #div_container .scriptFooter h5 {
+            margin: 0;
+            font-size: 10px;
+            line-height: 16px;
+            font-weight: normal;
+            color: #f9e7b7;
+            white-space: nowrap;
+        }
+
+        #div_container #div_body {
+            background: #f1e3bd;
+            padding: 2px 0 5px;
+            height: 600px !important;
+            overflow-y: auto !important;
+            overflow-x: hidden !important;
+        }
+
+        #div_container .scriptTable,
+        #div_container .scriptTableAlternate,
+        #div_container .scriptTableBalancerResult {
+            width: 96%;
+            margin: 8px auto;
+            border-collapse: separate;
+            border-spacing: 0;
+            table-layout: fixed;
+            border: 1px solid #b09158;
+            background: #f6e8c4;
+        }
+
+        #div_container .scriptTable td,
+        #div_container .scriptTableAlternate td,
+        #div_container .scriptTableBalancerResult td {
+            border-right: 1px solid #c4a76f;
+            border-bottom: 1px solid #c4a76f;
+            padding: 5px;
+            text-align: center;
+            color: #2b1b08;
+            font-size: 12px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            word-wrap: break-word;
+        }
+
+        #div_container .scriptTable td:last-child,
+        #div_container .scriptTableAlternate td:last-child,
+        #div_container .scriptTableBalancerResult td:last-child {
+            border-right: none;
+        }
+
+        #div_container .scriptTable tr:last-child td,
+        #div_container .scriptTableAlternate tr:last-child td,
+        #div_container .scriptTableBalancerResult tr:last-child td {
+            border-bottom: none;
+        }
+
+        #div_container .scriptTable tr:nth-child(odd) td,
+        #div_container .scriptTableAlternate tr:nth-child(odd) td,
+        #div_container .scriptTableBalancerResult tr:nth-child(odd) td {
+            background: #ead7aa;
+        }
+
+        #div_container .scriptTable tr:nth-child(even) td,
+        #div_container .scriptTableAlternate tr:nth-child(even) td,
+        #div_container .scriptTableBalancerResult tr:nth-child(even) td {
+            background: #f7ebcb;
+        }
+
+        #div_container .scriptTable tr:first-child td,
+        #div_container .scriptTableAlternate tr:first-child td,
+        #div_container .scriptTableBalancerResult tr:first-child td {
+            background:
+                linear-gradient(to bottom, rgba(255,255,255,.18), rgba(0,0,0,.15)),
+                #b58b4a;
+            color: #2b1b08;
+            font-weight: bold;
+            text-shadow: none !important;
+            position: sticky;
+            top: 0;
+            z-index: 2;
+        }
+
+        #div_container .scriptTable tr:not(:first-child):hover td,
+        #div_container .scriptTableAlternate tr:not(:first-child):hover td,
+        #div_container .scriptTableBalancerResult tr:not(:first-child):hover td {
+            background: #fff4d7;
+        }
+
+        #div_container .scriptTable a font,
+        #div_container .scriptTableAlternate a font,
+        #div_container .scriptTableBalancerResult a font,
+        #div_container .scriptTable font,
+        #div_container .scriptTableAlternate font,
+        #div_container .scriptTableBalancerResult font {
+            color: #2b1b08 !important;
+        }
+
+        #div_container .scriptInput,
+        #div_container input[type="number"],
+        #div_container input[type="text"],
+        #div_container input[type="datetime-local"],
+        #div_container select {
+            width: 70%;
+            background: #fffaf0;
+            color: #2b1b08;
+            border: 1px solid #8b652b;
+            border-radius: 2px;
+            padding: 2px 4px;
+            text-align: center;
+            font-size: 12px;
+            box-shadow: inset 0 1px 2px rgba(0,0,0,.18);
+            box-sizing: border-box;
+        }
+
+        #div_container input:disabled {
+            background: #d9c79a;
+            color: #4a3513;
+        }
+
+        #div_container input[type="checkbox"] {
+            vertical-align: middle;
+        }
+
+        #div_container button.btn,
+        #div_container input[type="button"].btn {
+            background:
+                linear-gradient(to bottom, #f8dfaa, #b78943);
+            border: 1px solid #5d3912;
+            color: #2b1b08;
+            font-weight: bold;
+            border-radius: 2px;
+            padding: 3px 10px;
+            font-size: 12px;
+            cursor: pointer;
+            box-shadow: inset 0 1px rgba(255,255,255,.45);
+        }
+
+        #div_container button.btn:hover,
+        #div_container input[type="button"].btn:hover {
+            background:
+                linear-gradient(to bottom, #fff0c4, #c79748);
+        }
+
+        #div_container button.btn:hover,
+        #div_container input[type="button"].btn:hover {
+            background:
+                linear-gradient(to bottom, #fff0c4, #c79748);
+        }
+
+        #div_container img {
+            vertical-align: middle;
+        }
+
+        #div_container #table_view {
+            background: #f1e3bd;
+        }
+
+        #div_container #table_view::-webkit-scrollbar,
+        #div_container #div_body::-webkit-scrollbar {
+            width: 10px;
+            height: 10px;
+        }
+
+        #div_container #table_view::-webkit-scrollbar-track,
+        #div_container #div_body::-webkit-scrollbar-track {
+            background: #d9c79a;
+        }
+
+        #div_container #table_view::-webkit-scrollbar-thumb,
+        #div_container #div_body::-webkit-scrollbar-thumb {
+            background: #8b652b;
+            border: 1px solid #5b3a16;
+        }
+    `;
+
+    const style = document.createElement("style");
+    style.id = "resource_balancer_css";
+    style.type = "text/css";
+    style.appendChild(document.createTextNode(cssStyle));
+    document.head.appendChild(style);
+}
+
 function getColorDarker(hexInput, percent) {
     let hex = hexInput;
 
@@ -116,10 +308,7 @@ function createMainInterface(){
             <div style=" margin-top:10px;"><h2>Resources balancer</h2></div>
             <div style="position:absolute;top:10px;right: 10px;"><a href="#" onclick="$('#div_container').remove()"><img src="https://img.icons8.com/emoji/24/000000/cross-mark-button-emoji.png"/></a></div>
             <div style="position:absolute;top:8px;right: 35px;" id="div_minimize"><a href="#"><img src="https://img.icons8.com/plasticine/28/000000/minimize-window.png"/></a></div>
-            <div style="position:absolute;top:10px;right: 60px;" id="div_theme"><a href="#" onclick="$('#theme_settings').toggle()"><img src="https://img.icons8.com/material-sharp/24/fa314a/change-theme.png"/></a></div>
         </div>
-        <div id="theme_settings"></div>
-
         <div id="div_body" style="height: 600px; overflow-y: auto">
             <center>
                 <table id="table_main"  class="scriptTable">
@@ -198,7 +387,7 @@ function createMainInterface(){
 
  
         <div class="scriptFooter">
-            <div style=" margin-top:5px;"><h5>made by Costache</h5></div>
+            <div><h5>original by Costache • optimized by amc</h5></div>
         </div>
     </div>`
     ////////////////////////////////////////add and remove window from page///////////////////////////////////////////
@@ -284,205 +473,6 @@ function createMainInterface(){
     })
     
 }
-
-
-
-function changeTheme(){
-    let html= `
-    <h3 style="color:${textColor};padding-left:10px;padding-top:5px">after theme is selected run the script again<h3>
-    <table class="scriptTable" >
-        
-        <tr>
-            <td>
-                <select  id="select_theme">
-                    <option value="theme1">theme1</option>
-                    <option value="theme2">theme2</option>
-                    <option value="theme3">theme3</option>
-                    <option value="theme4">theme4</option>
-                    <option value="theme5">theme5</option>
-                    <option value="theme6">theme6</option>
-                    <option value="theme7">theme7</option>
-                    <option value="theme8">theme8</option>
-                    <option value="theme9">theme9</option>
-                    <option value="theme10">theme10</option>
-                </select>
-            </td>
-            <td>value</td>
-            <td >color hex</td>
-        </tr>
-        <tr>
-            <td>textColor</td>
-            <td style="background-color:${textColor}" class="td_background"></td>
-            <td><input type="text" class="scriptInput input_theme" value="${textColor}"></td>
-        </tr>
-        <tr>
-            <td>backgroundInput</td>
-            <td style="background-color:${backgroundInput}" class="td_background"></td>
-            <td><input type="text" class="scriptInput input_theme" value="${backgroundInput}"></td>
-        </tr>
-        <tr>
-            <td>borderColor</td>
-            <td style="background-color:${borderColor}" class="td_background"></td>
-            <td><input type="text" class="scriptInput input_theme" value="${borderColor}"></td>
-        </tr>
-        <tr>
-            <td>backgroundContainer</td>
-            <td style="background-color:${backgroundContainer}" class="td_background"></td>
-            <td><input type="text" class="scriptInput input_theme" value="${backgroundContainer}"></td>
-        </tr>
-        <tr>
-            <td>backgroundHeader</td>
-            <td style="background-color:${backgroundHeader}" class="td_background"></td>
-            <td><input type="text" class="scriptInput input_theme" value="${backgroundHeader}"></td>
-        </tr>
-        <tr>
-            <td>backgroundMainTable</td>
-            <td style="background-color:${backgroundMainTable}" class="td_background"></td>
-            <td><input type="text" class="scriptInput input_theme" value="${backgroundMainTable}"></td>
-        </tr>
-        <tr>
-            <td>backgroundInnerTable</td>
-            <td style="background-color:${backgroundInnerTable}" class="td_background"></td>
-            <td><input type="text" class="scriptInput input_theme" value="${backgroundInnerTable}"></td>
-        </tr>
-        <tr>
-            <td>widthInterface</td>
-            <td><input type="range" min="25" max="100" class="slider input_theme" id="input_slider_width" value="${widthInterface}"></td>
-            <td id="td_width">${widthInterface}%</td>
-        </tr>
-        <tr >
-            <td><input class="btn evt-confirm-btn btn-confirm-yes" type="button" id="btn_save_theme" value="Save"></td>
-            <td><input class="btn evt-confirm-btn btn-confirm-yes" type="button" id="btn_reset_theme" value="Default themes"></td>
-            <td></td>
-        </tr>
-
-    </table>
-    `
-    $("#theme_settings").append(html)
-    $("#theme_settings").hide()
-
-    let selectedTheme = ""
-    let colours =[]
-    let mapTheme = new Map()
-
-    $("#select_theme").on("change",()=>{
-        if(localStorage.getItem(localStorageThemeName) != undefined){
-            selectedTheme = $('#select_theme').find(":selected").text();
-            colours = Array.from($(".input_theme")).map(elem=>elem.value.toUpperCase().trim())
-            mapTheme = new Map(JSON.parse(localStorage.getItem(localStorageThemeName)))
-            console.log(selectedTheme)
-            console.log(mapTheme)
-            colours = mapTheme.get(selectedTheme)
-            console.log(colours)
-            Array.from($(".input_theme")).forEach((elem,index)=>{
-                elem.value = colours[index]
-            })
-            Array.from($(".td_background")).forEach((elem,index)=>{
-                elem.style.background = colours[index]
-            })
-
-            mapTheme.set("currentTheme",selectedTheme)
-            localStorage.setItem(localStorageThemeName, JSON.stringify(Array.from(mapTheme.entries())))
-        }
-    })
-
-    $("#btn_save_theme").on("click",()=>{
-        colours = Array.from($(".input_theme")).map(elem=>elem.value.toUpperCase().trim())
-        selectedTheme = $('#select_theme').find(":selected").text();
-
-        for(let i=0;i<colours.length-1;i++){
-            if(colours[i].match(/#[0-9 A-F]{6}/) == null ){
-                UI.ErrorMessage("wrong colour: "+colours[i])  
-                throw new Error("wrong colour")
-            }
-        }
-
-        if(localStorage.getItem(localStorageThemeName) != undefined)
-            mapTheme = new Map(JSON.parse(localStorage.getItem(localStorageThemeName)))
-
-
-        mapTheme.set(selectedTheme,colours)
-        mapTheme.set("currentTheme",selectedTheme)
-
-        localStorage.setItem(localStorageThemeName, JSON.stringify(Array.from(mapTheme.entries())))
-        console.log("saved colours for: "+selectedTheme)
-        UI.SuccessMessage(`saved colours for: ${selectedTheme} \n run the script again`,1000)
-
-
-    })
-
-    $("#btn_reset_theme").on("click",()=>{
-        localStorage.setItem(localStorageThemeName, defaultTheme)
-        UI.SuccessMessage("run the script again",1000)
-
-    })
-    $("#input_slider_width").on("input",()=>{
-        $("#td_width").text($("#input_slider_width").val()+"%")
-    })
-
-
-    if(localStorage.getItem(localStorageThemeName) != undefined){
-        mapTheme = new Map(JSON.parse(localStorage.getItem(localStorageThemeName)))
-        let currentTheme=mapTheme.get("currentTheme")
-        document.querySelector('#select_theme').value=currentTheme
-    }
-
-    
-}
-
-function initializationTheme(){
-    if(localStorage.getItem(localStorageThemeName) != undefined){
-        let mapTheme = new Map(JSON.parse(localStorage.getItem(localStorageThemeName)))
-        let currentTheme=mapTheme.get("currentTheme")
-        let colours=mapTheme.get(currentTheme)
-
-        textColor=colours[0]
-        backgroundInput=colours[1]
-
-        borderColor = colours[2]
-        backgroundContainer=colours[3]
-        backgroundHeader=colours[4]
-        backgroundMainTable=colours[5]
-        backgroundInnerTable=colours[6]
-        widthInterface=colours[7]
-
-        if(game_data.device != "desktop"){
-            widthInterface = 98
-        }
-
-        backgroundAlternateTableEven=backgroundContainer;
-        backgroundAlternateTableOdd=getColorDarker(backgroundContainer,headerColorAlternateTable);       
-        console.log("textColor: "+textColor)
-        console.log("backgroundContainer: "+backgroundContainer)
-        
-    }
-    else{
-        localStorage.setItem(localStorageThemeName, defaultTheme)
-
-        let mapTheme = new Map(JSON.parse(localStorage.getItem(localStorageThemeName)))
-        let currentTheme=mapTheme.get("currentTheme")
-        let colours=mapTheme.get(currentTheme)
-
-        textColor=colours[0]
-        backgroundInput=colours[1]
-
-        borderColor = colours[2]
-        backgroundContainer=colours[3]
-        backgroundHeader=colours[4]
-        backgroundMainTable=colours[5]
-        backgroundInnerTable=colours[6]
-        widthInterface=colours[7]
-
-        if(game_data.device != "desktop"){
-            widthInterface = 98
-        }
-
-        backgroundAlternateTableEven=backgroundContainer;
-        backgroundAlternateTableOdd=getColorDarker(backgroundContainer,headerColorAlternateTable);  
-    }
-
-}
-
 
 
 
@@ -886,7 +876,6 @@ async function balancingResources(){
     
 
     createMainInterface()
-    changeTheme()
     $("#div_tables").show()
     createTable(list_launches_mass,obj_stats,list_production,list_clusters_stats)
     if(constructionTimeCalculated){
@@ -1242,34 +1231,6 @@ function calculateLaunches(
         total_iron_get_stats: total_iron_get_stats
     }
 }
-
-
-function hitCountApi(){
-    $.getJSON(`https://api.counterapi.dev/v1/${countNameSpace}/${countApiKey}/up`, response=>{
-        console.log(`This script has been run: ${response.count} times`);
-    });
-    if(game_data.device !="desktop"){
-        $.getJSON(`https://api.counterapi.dev/v1/${countNameSpace}/${countApiKey}_phone/up`, response=>{
-            console.log(`This script has been run on mobile: ${response.count} times`);
-        });
-    }
- 
-    $.getJSON(`https://api.counterapi.dev/v1/${countNameSpace}/${countApiKey}_id2${game_data.player.id}/up`, response=>{
-        if(response.count == 1){
-            $.getJSON(`https://api.counterapi.dev/v1/${countNameSpace}/${countApiKey}_scriptUsers/up`, response=>{});
-        }
-
-    });
-
-    try {
-        $.getJSON(`https://api.counterapi.dev/v1/${countNameSpace}/${countApiKey}_scriptUsers`, response=>{
-            console.log(`Total number of users: ${response.count}`);
-        }); 
-      
-    } catch (error) {}
-
-}
-
 
 
 ///////////////////////////////////////////////////////////////////get all resources from page combined production//////////////////////////////////////////////////

@@ -1,6 +1,3 @@
-var countApiKey = "support_withdrawal";
-var countNameSpace="madalinoTribalWarsScripts"
-
 var troopsPop = {
     spear : 1,
     sword : 1,
@@ -60,7 +57,6 @@ async function main(){
     createMainInterface(dataTroops.dataOwn,dataTroops.dataAllies, players)
     addEvents()
     addEventPanel()
-    hitCountApi()
 
 
 }
@@ -72,7 +68,10 @@ function injectStyle(){
             width: ${widthInterface}%;
             height: auto !important;
             min-height: unset !important;
+            max-height: none !important;
             aspect-ratio: auto !important;
+            display: flex !important;
+            flex-direction: column !important;
             background: #f1e3bd;
             border: 2px solid #5b3a16;
             border-radius: 2px;
@@ -88,6 +87,7 @@ function injectStyle(){
             color: #f9e7b7;
             border-bottom: 2px solid #3d260d;
             min-height: 32px;
+            flex-shrink: 0;
             display: flex; justify-content: center; align-items: center;
             text-shadow: 1px 1px #000;
             position: relative;
@@ -96,6 +96,7 @@ function injectStyle(){
         #div_container .scriptFooter {
             background: linear-gradient(to bottom, rgba(255,255,255,.08), rgba(0,0,0,.18)), #6e4215;
             color: #f9e7b7; border-top: 1px solid #3d260d;
+            flex-shrink: 0;
             display: flex; justify-content: flex-end; align-items: center;
             padding: 3px 10px; min-height: 22px; box-sizing: border-box; text-shadow: 1px 1px #000;
         }
@@ -103,7 +104,8 @@ function injectStyle(){
             margin: 0; font-size: 10px; line-height: 16px; font-weight: normal; color: #f9e7b7; white-space: nowrap;
         }
         #div_container #div_body {
-            background: #f1e3bd; padding: 2px 0 5px;
+            background: #f1e3bd; padding: 2px 0 0;
+            flex: 0 1 auto;
             max-height: 600px !important; overflow-y: auto !important; overflow-x: hidden !important;
         }
 
@@ -124,7 +126,8 @@ function injectStyle(){
             background: linear-gradient(to bottom, #fff4d7, #f1e3bd);
             border-bottom: 1px solid #f1e3bd; position: relative; top: 1px;
         }
-        #div_container .panel { padding: 4px; }
+        #div_container .panel { padding: 4px; display: none; }
+        #div_container .panel.active { display: block; }
 
         /* kill the original blue inner-table backgrounds */
         #div_container #panel1,
@@ -416,8 +419,6 @@ function createMainInterface(dataOwn,dataAllies, players){
 
 
         html+=`
-        <br>
-        <br>
         </div>
         <div class="scriptFooter">
             <div style=" margin-top:5px;"><h5>original by Costache • optimized by amc</h5></div>
@@ -986,30 +987,4 @@ function addEvents(){
 
 
     });
-}
-
-function hitCountApi(){
-    $.getJSON(`https://api.counterapi.dev/v1/${countNameSpace}/${countApiKey}/up`, response=>{
-        console.log(`This script has been run: ${response.count} times`);
-    });
-    if(game_data.device !="desktop"){
-        $.getJSON(`https://api.counterapi.dev/v1/${countNameSpace}/${countApiKey}_phone/up`, response=>{
-            console.log(`This script has been run on mobile: ${response.count} times`);
-        });
-    }
-
-    $.getJSON(`https://api.counterapi.dev/v1/${countNameSpace}/${countApiKey}_id2${game_data.player.id}/up`, response=>{
-        if(response.count == 1){
-            $.getJSON(`https://api.counterapi.dev/v1/${countNameSpace}/${countApiKey}_scriptUsers/up`, response=>{});
-        }
-
-    });
-
-    try {
-        $.getJSON(`https://api.counterapi.dev/v1/${countNameSpace}/${countApiKey}_scriptUsers`, response=>{
-            console.log(`Total number of users: ${response.count}`);
-        });
-
-    } catch (error) {}
-
 }

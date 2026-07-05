@@ -15,7 +15,6 @@ var troopsPop = {
 };
 troopsPop.heavy=heavyCav
 
-
 var units=game_data.units;
 var unitsLength=units.length;
 if(units.includes("snob"))
@@ -30,34 +29,28 @@ units = Array.from(game_data.units.slice()).filter(value =>{
 })
 
 if(!window.location.href.includes("screen=info_village")){
-    alert("this script must be run from village information page on the map");
-    throw new Error("this script must be run from village information page on the map")
-
+    let id = game_data.village.id
+    window.location.assign(`/game.php?village=${id}&screen=info_village&id=${id}`)
+    throw new Error("redirecting to info_village")
 }
 
 var textColor="#2b1b08"
-var widthInterface=50;//percentage
+var widthInterface=50;
 if(game_data.device != "desktop"){
     widthInterface = 98
 }
 
 var dataTroops = getDataTroops()
 
-
 async function main(){
 
     injectStyle()
-
-    console.log(dataTroops)
-    console.log(dataTroops.dataOwn)
-    console.log(dataTroops.dataAllies)
 
     let players = dataTroops.map(elem => elem.playerName).filter(elem => elem != game_data.player.name)
     players = [...new Set(players)]
     createMainInterface(dataTroops.dataOwn,dataTroops.dataAllies, players)
     addEvents()
     addEventPanel()
-
 
 }
 main()
@@ -217,7 +210,6 @@ function createMainInterface(dataOwn,dataAllies, players){
 
         <div id="div_body">`
 
-        //create panels
         html+=`
         <br>
         <div class="tab-panels" id="tabs_coord" >
@@ -232,7 +224,6 @@ function createMainInterface(dataOwn,dataAllies, players){
             <table class="scriptTable tableSettings">
                 <tr>
                     <td></td>`
-
 
     for(let i=0;i<units.length;i++){
         if(units[i]!="knight" && units[i]!="snob" && units[i]!="militia" && units[i]!="axe" && units[i]!="light" && units[i]!="ram" && units[i]!="catapult" && units[i]!="marcher"){
@@ -289,9 +280,6 @@ function createMainInterface(dataOwn,dataAllies, players){
                 </td>
             </tr>`
 
-
-
-
     html+=`
             <tr>
                 <td>
@@ -326,7 +314,6 @@ function createMainInterface(dataOwn,dataAllies, players){
 
         </div>`
 
-        //allies settings
         html+=`
         <div id="panel2" class="panel">
         <table class="scriptTable tableSettings">
@@ -387,7 +374,6 @@ function createMainInterface(dataOwn,dataAllies, players){
                     <tr>
                     </tr>`
 
-
                 for(let i=0;i<players.length;i++){
                     html +=
                     `<tr>
@@ -399,8 +385,6 @@ function createMainInterface(dataOwn,dataAllies, players){
                         </td>
                     </tr>`
                 }
-
-
 
         html+=`</table></center>
 
@@ -415,9 +399,6 @@ function createMainInterface(dataOwn,dataAllies, players){
 
         </div>`
 
-
-
-
         html+=`
         </div>
         <div class="scriptFooter">
@@ -425,15 +406,9 @@ function createMainInterface(dataOwn,dataAllies, players){
         </div>
     </div>`
 
-
-    ////////////////////////////////////////add and remove window from page///////////////////////////////////////////
     $("#div_container").remove()
     $("#contentContainer").eq(0).prepend(html);
     $("#mobileContent").eq(0).prepend(html);
-
-    //for mobile browser
-
-
 
     $("#div_container").css("position","fixed");
     $("#div_container").draggable();
@@ -450,15 +425,11 @@ function createMainInterface(dataOwn,dataAllies, players){
         }
     })
     if(localStorage.getItem(game_data.world+"support_withdraw_settings")!=null ){
-        //initialize radiobutton
         let list_radioButton=JSON.parse(localStorage.getItem(game_data.world+"support_withdraw_settings"))[0]
         $('.tableSettings input[type=radio]').each(function (index,elem) {
             this.checked=list_radioButton[index]
-            // console.log(elem.value)
         });
-        console.log(list_radioButton)
 
-        //initialize input numbers
         let list_input=JSON.parse(localStorage.getItem(game_data.world+"support_withdraw_settings"))[1]
         $('.tableSettings input').each(function (index,elem) {
             if(!elem.id.includes("Filter"))
@@ -466,36 +437,27 @@ function createMainInterface(dataOwn,dataAllies, players){
         });
 
         $('.totalTroops').each(function (index,elem) {
-            console.log(elem)
             this.value=0
         });
         $("#packets_total").val(0)
     }
-    //save settings
     $(".tableSettings input[type=radio], .tableSettings input").on("click input change",(elem)=>{
         if(!elem.currentTarget.id.includes("Filter")){
             let list_radioButton=[]
             let list_input=[]
-            //save checkbox
             $('.tableSettings input[type=radio]').each(function () {
                 var checked = this.checked
-                // console.log(this)
                 list_radioButton.push(checked)
             });
 
-            //save inputs
             $('.tableSettings input').each(function () {
-                // table_upload checked = this.checked
                 var value=this.value
-                // console.log(value)
                 list_input.push(value)
             });
 
             let list_final=[list_radioButton,list_input]
             let data=JSON.stringify(list_final)
             let data_localStorage=localStorage.getItem(game_data.world+"support_withdraw_settings")
-            console.log(data)
-            console.log(data_localStorage)
             if(data!=data_localStorage){
                 localStorage.setItem(game_data.world+"support_withdraw_settings",data)
             }
@@ -517,8 +479,6 @@ function createMainInterface(dataOwn,dataAllies, players){
     document.getElementById("packets_total").value = (dataOwn.totalPop / 1000).toFixed(1)
     document.getElementById("packets_totalAllies").value = (dataAllies.totalPop / 1000).toFixed(1)
 
-
-    //input chance distance min max for own troops
     $(".tableSettings input[id=distanceMin], .tableSettings input[id=distanceMax] ").on("click input change",()=>{
         let distanceMin = parseFloat($("#distanceMin").val())
         let distanceMax = parseFloat($("#distanceMax").val())
@@ -555,9 +515,7 @@ function createMainInterface(dataOwn,dataAllies, players){
         })
         document.getElementById("packets_total").value = parseInt((pop / 1000) * 100) / 100
 
-        console.log(troops)
-        console.log(pop)
-    })//input chance distance min max for allies
+    })
     $(".tableSettings input[id=distanceMin2], .tableSettings input[id=distanceMax2] ").on("click input change",()=>{
         updateValuesAllies()
 
@@ -581,7 +539,6 @@ function updateValuesAllies(){
         .filter(elem => elem.distance > distanceMin && elem.distance < distanceMax)
         .filter(elem => playerAllies.includes(elem.playerName))
 
-
     let pop = 0;
     dataTroopsAllies.forEach(row=>{
         pop += row.totalPop
@@ -590,31 +547,25 @@ function updateValuesAllies(){
 
     document.getElementById("packets_totalAllies").value = parseInt((pop / 1000) * 100) / 100
 
-    console.log(pop)
 }
 
 function addEventPanel(){
     $('.tab-panels .tabs li').each((index,item)=>{
-        // console.log(item.id)
         if(item.id!="add_tab"){
             $(item).off("click")
         }
     })
     $('.tab-panels .tabs li').not("#add_tab").on('click', function(event) {
-        // console.log("addEventPanel")
         if(event.target.src==undefined){
-            // console.log("inside if")
             if($(this).hasClass("active")==false ){
 
                 var $panel = $(this).closest('.tab-panels');
                 $panel.find('.tabs li.active').removeClass('active');
                 $(this).addClass('active');
 
-                //figure out which panel to show
                 var panelToShow = $(this).attr('rel');
                 if(panelToShow!=undefined){
-                    //hide current panel
-                    $panel.find('.panel.active').slideUp(300, showNextPanel); //show next panel
+                    $panel.find('.panel.active').slideUp(300, showNextPanel);
                     function showNextPanel() {
                         $(this).removeClass('active');
 
@@ -629,8 +580,6 @@ function addEventPanel(){
     });
 }
 
-
-
 function getDataTroops(){
 
     let troopsTable = document.getElementById("withdraw_selected_units_village_info").getElementsByTagName("tbody")[0]
@@ -638,15 +587,13 @@ function getDataTroops(){
     let rowsOutput = [];
 
     let homeCoord
-    console.log(game_data.device)
     if(game_data.device == "desktop")
         homeCoord = $("#embedmap_village").parent().next().text().match(/[0-9]{3}\|[0-9]{3}/)[0]
     else
         homeCoord = $(".mobileKeyValue").find("div").text().match(/[0-9]{3}\|[0-9]{3}/)[0]
 
-    let startRow = (rows[1].children[0].innerText.match(/[0-9]{3}\|[0-9]{3}/) != null)? 1 : 2 // for own villages start from 2 for others start from 1
+    let startRow = (rows[1].children[0].innerText.match(/[0-9]{3}\|[0-9]{3}/) != null)? 1 : 2
     let lengthTd = rows[0].children.length
-    console.log(lengthTd)
     let playerNameHtml = rows[0].insertCell(lengthTd-1);
     playerNameHtml.outerHTML="<th class='info'><a href=#>player name</a></th>";
 
@@ -656,7 +603,6 @@ function getDataTroops(){
     let distanceHtml = rows[0].insertCell(lengthTd-1);
     distanceHtml.outerHTML="<th class='info'><a href=#>distance</a></th>";
 
-//add first and second row
     let rowsSort = []
     if(startRow == 1){
         rowsSort.push({
@@ -674,7 +620,6 @@ function getDataTroops(){
         })
 
     }
-
 
     for(let i=startRow;i<rows.length-1;i++){
         let coordOrigin = rows[i].children[0].innerText.match(/[0-9]{3}\|[0-9]{3}/)[0]
@@ -726,7 +671,6 @@ rowsSort.push({
         distanceHtml.outerHTML=`<td class='info'><center>${distance.toFixed(1)}</center></td>`
     }
 
-    //add last row
     rowsSort.push({
         tr: rows[rows.length-1],
         distance: 999999999
@@ -735,8 +679,6 @@ rowsSort.push({
     rowsSort = rowsSort.sort((o1,o2)=>{
         return (o1.distance > o2.distance) ? 1 : (o1.distance < o2.distance) ? -1 : 0
     }).map(elem=>elem.tr)
-
-    console.log(rowsSort)
 
     let troopNames = ["spear", "sword", "archer", "spy", "heavy"]
     let dataOwn = {
@@ -769,13 +711,8 @@ rowsSort.push({
     rowsOutput.dataOwn = dataOwn
     rowsOutput.dataAllies = dataAllies
 
-
-
-
     return rowsOutput
 }
-
-
 
 function calcDistance(coord1,coord2){
     let x1=parseInt(coord1.split("|")[0])
@@ -803,13 +740,10 @@ function withdrawAllies(){
     distanceMax = Number.isNaN(distanceMax) ? 999 : distanceMax
 
     let playerAllies = Array.from($("input[type=checkbox]:checked")).map(elem=>elem.id).filter(elem=>elem.includes("Filter")).map(elem=>elem.replace("Filter",""))
-    console.log(playerAllies)
     let dataTroopsAllies = dataTroops
         .filter(elem => elem.playerName != game_data.player.name)
         .filter(elem => elem.distance > distanceMin && elem.distance < distanceMax)
         .filter(elem => playerAllies.includes(elem.playerName))
-
-    console.log(dataTroopsAllies)
 
     let listWithdraw = []
     if(quantitySupport == "smallest"){
@@ -824,7 +758,6 @@ function withdrawAllies(){
         })
     }
 
-    console.log(dataTroopsAllies)
     let popWithdrawn = 0;
     for(let i=0;i<dataTroopsAllies.length;i++){
         if(dataTroopsAllies[i].totalPop <= withdrawTroops){
@@ -833,14 +766,11 @@ function withdrawAllies(){
             listWithdraw.push(dataTroopsAllies[i])
         }
     }
-    console.log("withdrawn pop: " + popWithdrawn)
-    console.log(type)
     if(type == "withdraw")
         document.getElementById("troops_allies_withdrawn").innerText = "withdraw: " + (popWithdrawn / 1000).toFixed(1) +" k"
     else
         document.getElementById("troops_allies_withdrawn").innerText = "leave: " + ((totalPop - popWithdrawn) / 1000).toFixed(1) +" k"
 
-    // $(".troop-request-selector").prop('checked', false);
     for(let i=0;i<dataTroopsAllies.length;i++){
         let checked = $(dataTroopsAllies[i].tr).find(".troop-request-selector").prop("checked")
         if(checked == true)
@@ -954,7 +884,6 @@ function addEvents(){
         for(let i=0;i<leaveTotal.length;i++){
             let id = leaveTotal[i].id
             let value = (leaveTotal[i].value=="") ? 0 : leaveTotal[i].value
-            console.log(id)
             if(id.includes("spear") || id.includes("sword") || id.includes("archer") || id.includes("heavy")){
                 totalPop += parseFloat(value) * 1000 * troopsPop[id.replace("total", "")]
             }
@@ -963,17 +892,13 @@ function addEvents(){
         document.getElementById("packets_leave").value=(totalPop/1000).toFixed(2)
 
     });
-    // $('.packets_send').off('input')
     $('#packets_leave').on('input',function(e){
         let needTroops=parseFloat(document.getElementById("packets_leave").value)
         let totalPop =parseFloat(document.getElementById("packets_total").value)
         let sendTotal=document.getElementsByClassName("leaveTroops")
         let totalTroops=document.getElementsByClassName("totalTroops")
 
-        console.log(needTroops)
-        console.log(totalPop)
         let ratio = needTroops/totalPop
-        console.log(ratio)
         for(let i=0;i<totalTroops.length;i++){
             let id=sendTotal[i].id
             if(!id.includes("spy")){
@@ -983,8 +908,6 @@ function addEvents(){
                 sendTotal[i].value=0
             }
         }
-
-
 
     });
 }

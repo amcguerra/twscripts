@@ -1,7 +1,3 @@
-// made by Costache Madalin (lllll llll)
-// discord: costache madalin#8472
-
-
 var countApiKey = "support_withdrawal";
 var countNameSpace="madalinoTribalWarsScripts"
 
@@ -31,7 +27,7 @@ if(units.includes("militia"))
     unitsLength--;
 if(units.includes("knight"))
     unitsLength--;
-    
+
 units = Array.from(game_data.units.slice()).filter(value =>{
     return value != "snob" && value != "militia" && value != "knight"
 })
@@ -42,63 +38,26 @@ if(!window.location.href.includes("screen=info_village")){
 
 }
 
-
-
-var defaultTheme= '[["theme1",["#E0E0E0","#000000","#C5979D","#2B193D","#2C365E","#484D6D","#4B8F8C","50"]],["currentTheme","theme1"],["theme2",["#E0E0E0","#000000","#F76F8E","#113537","#37505C","#445552","#294D4A","50"]],["theme3",["#E0E0E0","#000000","#ACFCD9","#190933","#665687","#7C77B9","#623B5A","50"]],["theme4",["#E0E0E0","#000000","#181F1C","#60712F","#274029","#315C2B","#214F4B","50"]],["theme5",["#E0E0E0","#000000","#9AD1D4","#007EA7","#003249","#1F5673","#1C448E","50"]],["theme6",["#E0E0E0","#000000","#EA8C55","#81171B","#540804","#710627","#9E1946","50"]],["theme7",["#E0E0E0","#000000","#754043","#37423D","#171614","#3A2618","#523A34","50"]],["theme8",["#E0E0E0","#000000","#9E0031","#8E0045","#44001A","#600047","#770058","50"]],["theme9",["#E0E0E0","#000000","#C1BDB3","#5F5B6B","#323031","#3D3B3C","#575366","50"]],["theme10",["#E0E0E0","#000000","#E6BCCD","#29274C","#012A36","#14453D","#7E52A0","50"]]]'
-var localStorageThemeName = "supportWithdrawTheme"
-if(localStorage.getItem(localStorageThemeName)!=undefined){
-    let mapTheme = new Map(JSON.parse(localStorage.getItem(localStorageThemeName)))
-    Array.from(mapTheme.keys()).forEach((key)=>{
-        if(key!="currentTheme"){
-            let listColors=mapTheme.get(key);
-            if(listColors.length == 7){
-                listColors.push(50);
-                mapTheme.set(key,listColors)
-            }
-        }
-    })
-    localStorage.setItem(localStorageThemeName, JSON.stringify(Array.from(mapTheme.entries())))
-}
-var headerWood="#001a33"
-var headerWoodEven="#002e5a"
-var headerStone="#3b3b00"
-var headerStoneEven="#626200"
-var headerIron="#1e003b"
-var headerIronEven="#3c0076"
-var textColor="#ffffff"
-var backgroundInput="#000000"
-
-
-var borderColor = "#C5979D";//#026440
-var backgroundContainer="#2B193D"
-var backgroundHeader="#2C365E"
-var backgroundMainTable="#484D6D"
-var backgroundInnerTable="#4B8F8C"
-
+var textColor="#2b1b08"
 var widthInterface=50;//percentage
-var headerColorDarken=-50 //percentage( how much the header should be darker) if it's with -(darker) + (lighter)
-var headerColorAlternateTable=-30;
-var headerColorAlternateHover=30;
-
-var backgroundAlternateTableEven=backgroundContainer;
-var backgroundAlternateTableOdd=getColorDarker(backgroundContainer,headerColorAlternateTable);
+if(game_data.device != "desktop"){
+    widthInterface = 98
+}
 
 var dataTroops = getDataTroops()
 
 
 async function main(){
 
-    initializationTheme()
-    await $.getScript("https://dl.dropboxusercontent.com/s/i5c0so9hwsizogm/styleCSSGlobal.js?dl=0");
+    injectStyle()
 
     console.log(dataTroops)
     console.log(dataTroops.dataOwn)
     console.log(dataTroops.dataAllies)
-    
+
     let players = dataTroops.map(elem => elem.playerName).filter(elem => elem != game_data.player.name)
     players = [...new Set(players)]
     createMainInterface(dataTroops.dataOwn,dataTroops.dataAllies, players)
-    changeTheme()
     addEvents()
     addEventPanel()
     hitCountApi()
@@ -107,32 +66,163 @@ async function main(){
 }
 main()
 
+function injectStyle(){
+    const cssStyle = `
+        #div_container.scriptContainer {
+            width: ${widthInterface}%;
+            height: auto !important;
+            min-height: unset !important;
+            aspect-ratio: auto !important;
+            background: #f1e3bd;
+            border: 2px solid #5b3a16;
+            border-radius: 2px;
+            box-shadow: 0 4px 14px rgba(0,0,0,.55);
+            cursor: move;
+            z-index: 99999;
+            font-family: Verdana, Arial, sans-serif;
+            color: #2b1b08;
+            overflow: hidden !important;
+        }
+        #div_container .scriptHeader {
+            background: linear-gradient(to bottom, rgba(255,255,255,.12), rgba(0,0,0,.18)), #7b4a18;
+            color: #f9e7b7;
+            border-bottom: 2px solid #3d260d;
+            min-height: 32px;
+            display: flex; justify-content: center; align-items: center;
+            text-shadow: 1px 1px #000;
+            position: relative;
+        }
+        #div_container .scriptHeader h2 { font-size: 15px; margin: 0; letter-spacing: .2px; line-height: 32px; }
+        #div_container .scriptFooter {
+            background: linear-gradient(to bottom, rgba(255,255,255,.08), rgba(0,0,0,.18)), #6e4215;
+            color: #f9e7b7; border-top: 1px solid #3d260d;
+            display: flex; justify-content: flex-end; align-items: center;
+            padding: 3px 10px; min-height: 22px; box-sizing: border-box; text-shadow: 1px 1px #000;
+        }
+        #div_container .scriptFooter h5 {
+            margin: 0; font-size: 10px; line-height: 16px; font-weight: normal; color: #f9e7b7; white-space: nowrap;
+        }
+        #div_container #div_body {
+            background: #f1e3bd; padding: 2px 0 5px;
+            max-height: 600px !important; overflow-y: auto !important; overflow-x: hidden !important;
+        }
+
+        /* tabs */
+        #div_container .tab-panels { margin: 0; }
+        #div_container ul.tabs {
+            list-style: none; margin: 0 auto 4px; padding: 0 6px;
+            display: flex; gap: 3px; border-bottom: 2px solid #5b3a16;
+        }
+        #div_container ul.tabs li {
+            list-style: none; padding: 4px 12px; cursor: pointer;
+            background: linear-gradient(to bottom, #e2cd9c, #c8a869);
+            border: 1px solid #8b652b; border-bottom: none;
+            border-radius: 3px 3px 0 0; margin: 0;
+        }
+        #div_container ul.tabs li font { color: #2b1b08 !important; font-size: 12px; font-weight: bold; }
+        #div_container ul.tabs li.active {
+            background: linear-gradient(to bottom, #fff4d7, #f1e3bd);
+            border-bottom: 1px solid #f1e3bd; position: relative; top: 1px;
+        }
+        #div_container .panel { padding: 4px; }
+
+        /* kill the original blue inner-table backgrounds */
+        #div_container #panel1,
+        #div_container #panel2,
+        #div_container .panel,
+        #div_container #all_tabs,
+        #div_container .tab-panels,
+        #div_container #tabs_coord {
+            background: #f1e3bd !important;
+        }
+        #div_container #div_body > table,
+        #div_container #div_body > table > tbody > tr > td {
+            background: #f1e3bd !important;
+        }
+
+        /* tables */
+        #div_container .scriptTable {
+            width: 96%; margin: 8px auto; border-collapse: separate; border-spacing: 0;
+            table-layout: fixed; border: 1px solid #b09158; background: #f6e8c4;
+        }
+        #div_container .scriptTable td {
+            border-right: 1px solid #c4a76f; border-bottom: 1px solid #c4a76f;
+            padding: 5px; text-align: center; color: #2b1b08; font-size: 12px;
+            overflow: hidden; text-overflow: ellipsis; word-wrap: break-word;
+        }
+        #div_container .scriptTable td:last-child { border-right: none; }
+        #div_container .scriptTable tr:last-child td { border-bottom: none; }
+        #div_container .scriptTable tr:nth-child(odd) td { background: #ead7aa; }
+        #div_container .scriptTable tr:nth-child(even) td { background: #f7ebcb; }
+        #div_container .scriptTable tr:not(:first-child):hover td { background: #fff4d7; }
+        #div_container .scriptTable font { color: #2b1b08 !important; }
+
+        /* settings tables: top row holds unit icons + radios, keep it plain parchment */
+        #div_container .tableSettings tr:first-child td {
+            background: linear-gradient(to bottom, rgba(255,255,255,.18), rgba(0,0,0,.10)), #cdb072;
+            font-weight: bold;
+        }
+        #div_container .tableSettings .fm_unit { padding: 2px; }
+        #div_container .tableSettings .fm_unit img { width: 18px; height: 18px; }
+
+        /* inputs */
+        #div_container .scriptInput,
+        #div_container input[type="number"],
+        #div_container input[type="text"],
+        #div_container select {
+            width: 70%; background: #fffaf0; color: #2b1b08;
+            border: 1px solid #8b652b; border-radius: 2px; padding: 2px 4px;
+            text-align: center; font-size: 12px;
+            box-shadow: inset 0 1px 2px rgba(0,0,0,.18); box-sizing: border-box;
+        }
+        #div_container .tableSettings .scriptInput { width: 46px; }
+        #div_container input:disabled { background: #d9c79a; color: #4a3513; }
+        #div_container input[type="checkbox"], #div_container input[type="radio"] { vertical-align: middle; }
+        #div_container label { color: #2b1b08; font-size: 11px; }
+
+        /* buttons */
+        #div_container button.btn, #div_container input[type="button"].btn {
+            background: linear-gradient(to bottom, #f8dfaa, #b78943);
+            border: 1px solid #5d3912; color: #2b1b08; font-weight: bold;
+            border-radius: 2px; padding: 3px 10px; font-size: 12px; cursor: pointer;
+            box-shadow: inset 0 1px rgba(255,255,255,.45);
+        }
+        #div_container button.btn:hover, #div_container input[type="button"].btn:hover {
+            background: linear-gradient(to bottom, #fff0c4, #c79748);
+        }
+        #div_container img { vertical-align: middle; }
+
+        /* scrollbars */
+        #div_container #div_body::-webkit-scrollbar { width: 10px; height: 10px; }
+        #div_container #div_body::-webkit-scrollbar-track { background: #d9c79a; }
+        #div_container #div_body::-webkit-scrollbar-thumb { background: #8b652b; border: 1px solid #5b3a16; }
+    `;
+    $("head").append(`<style>${cssStyle}</style>`);
+}
 
 function createMainInterface(dataOwn,dataAllies, players){
     let rowsSpawnButtons = (game_data.units.includes("archer") == true)?6:5;
-    
+
     let html=`
-    
+
     <div id="div_container" class="scriptContainer">
         <div class="scriptHeader">
             <div style=" margin-top:10px;"><h2>Support withdrawal</h2></div>
             <div style="position:absolute;top:10px;right: 10px;"><a href="#" onclick="$('#div_container').remove()"><img src="https://img.icons8.com/emoji/24/000000/cross-mark-button-emoji.png"/></a></div>
             <div style="position:absolute;top:8px;right: 35px;" id="div_minimize"><a href="#"><img src="https://img.icons8.com/plasticine/28/000000/minimize-window.png"/></a></div>
-            <div style="position:absolute;top:10px;right: 60px;" id="div_theme"><a href="#" onclick="$('#theme_settings').toggle()"><img src="https://img.icons8.com/material-sharp/24/fa314a/change-theme.png"/></a></div>
         </div>
 
-        <div id="theme_settings"></div>
         <div id="div_body">`
 
         //create panels
-        html+=`   
+        html+=`
         <br>
         <div class="tab-panels" id="tabs_coord" >
             <ul class="tabs">
                 <li class="update_tab own active" rel="panel1" ><font >Own troops </font ></li>
                 <li class="update_tab own" rel="panel2" ><font >Allies troops </font ></li>
             </ul>
-        
+
             <div id="all_tabs">
 
             <div id="panel1" class="panel active">
@@ -151,9 +241,9 @@ function createMainInterface(dataOwn,dataAllies, players){
             </tr>
             <tr id="totalTroops"
             >
-                <td>Troops</td>   
+                <td>Troops</td>
             `;
-        
+
     for(let i=0;i<units.length;i++){
         if(units[i]!="knight" && units[i]!="snob" && units[i]!="militia" && units[i]!="axe" && units[i]!="light" && units[i]!="ram" && units[i]!="catapult" && units[i]!="marcher"){
             html+=` <td>
@@ -161,12 +251,12 @@ function createMainInterface(dataOwn,dataAllies, players){
                         <font color="${textColor}" class="hideMobile">k</font>
                     </td>  `
         }
-    }  
+    }
     html+=`
                 <td>
                     <input id="packets_total" value="0" type="text" class="scriptInput "  disabled>
                 <font color="${textColor}" class="hideMobile">k</font>
-                </td>  
+                </td>
             </tr>
             <tr id="leaveTroops">
                 <td>
@@ -180,10 +270,7 @@ function createMainInterface(dataOwn,dataAllies, players){
                             <label for="leave">Leave</label>
                         </div>
                     </div>
-                </td>`;
-
-        
-    for(let i=0;i<units.length;i++){
+                </td>`;for(let i=0;i<units.length;i++){
         if(units[i]!="knight" && units[i]!="snob" && units[i]!="militia" && units[i]!="axe" && units[i]!="light" && units[i]!="ram" && units[i]!="catapult" && units[i]!="marcher"){
                 html+=`
                         <td align="center" >
@@ -191,12 +278,12 @@ function createMainInterface(dataOwn,dataAllies, players){
                             <font color="${textColor}" class="hideMobile">k</font>
                         </td>  `
         }
-    }     
+    }
     html+=`
                 <td align="center" >
                     <input id="packets_leave" value="0" type="number" class="scriptInput"  >
                     <font color="${textColor}" class="hideMobile">k</font>
-                </td> 
+                </td>
             </tr>`
 
 
@@ -226,7 +313,7 @@ function createMainInterface(dataOwn,dataAllies, players){
                 </td>
                 <td colspan='${rowsSpawnButtons-2}' >
                     <font color="${textColor}" id="troops_own_withdrawn"></font>
-                </td>   
+                </td>
 
             </tr>
         </table>
@@ -239,7 +326,7 @@ function createMainInterface(dataOwn,dataAllies, players){
         //allies settings
         html+=`
         <div id="panel2" class="panel">
-        <table class="scriptTable tableSettings"> 
+        <table class="scriptTable tableSettings">
             <tr>
                 <td></td>
                 <td>Quantity</td>
@@ -268,9 +355,7 @@ function createMainInterface(dataOwn,dataAllies, players){
                     <font color="${textColor}" class="hideMobile">k</font>
                 </td>
             </tr>
-
-
-                <tr>
+  <tr>
                 <td>
                     <div style="display: flex; justify-content: space-between;flex-wrap:wrap;width:120px ">
                         <div>
@@ -282,7 +367,7 @@ function createMainInterface(dataOwn,dataAllies, players){
                             <label for="furthest">Biggest first</label>
                         </div>
                     </div>
-                </td>    
+                </td>
                 <td>
                     <p>Distance min<p>
                     <input id="distanceMin2" value="0" type="number"   class="scriptInput" >
@@ -301,7 +386,7 @@ function createMainInterface(dataOwn,dataAllies, players){
 
 
                 for(let i=0;i<players.length;i++){
-                    html += 
+                    html +=
                     `<tr>
                         <td>
                             <input type="checkbox" id="${players[i]}Filter" checked="true">
@@ -320,7 +405,7 @@ function createMainInterface(dataOwn,dataAllies, players){
 
             <td>
                 <font color="${textColor}" id="troops_allies_withdrawn"></font>
-            </td>   
+            </td>
         </tr>
         </table>
         <center><button type="button" class="btn evt-confirm-btn btn-confirm-yes" id="alliesWithdraw" onclick="withdrawAllies()">Withdraw</button></center>
@@ -328,15 +413,15 @@ function createMainInterface(dataOwn,dataAllies, players){
         </div>`
 
 
- 
-            
+
+
         html+=`
         <br>
         <br>
         </div>
         <div class="scriptFooter">
-            <div style=" margin-top:5px;"><h5>made by Costache</h5></div>
-        </div> 
+            <div style=" margin-top:5px;"><h5>original by Costache • optimized by amc</h5></div>
+        </div>
     </div>`
 
 
@@ -351,7 +436,7 @@ function createMainInterface(dataOwn,dataAllies, players){
 
     $("#div_container").css("position","fixed");
     $("#div_container").draggable();
-    
+
     $("#div_minimize").on("click",()=>{
         let currentWidthPercentage=Math.ceil($('#div_container').width() / $('body').width() * 100);
         if(currentWidthPercentage >=widthInterface ){
@@ -363,8 +448,6 @@ function createMainInterface(dataOwn,dataAllies, players){
             $('#div_body').show();
         }
     })
-    
-
     if(localStorage.getItem(game_data.world+"support_withdraw_settings")!=null ){
         //initialize radiobutton
         let list_radioButton=JSON.parse(localStorage.getItem(game_data.world+"support_withdraw_settings"))[0]
@@ -398,7 +481,7 @@ function createMainInterface(dataOwn,dataAllies, players){
                 // console.log(this)
                 list_radioButton.push(checked)
             });
-    
+
             //save inputs
             $('.tableSettings input').each(function () {
                 // table_upload checked = this.checked
@@ -406,7 +489,7 @@ function createMainInterface(dataOwn,dataAllies, players){
                 // console.log(value)
                 list_input.push(value)
             });
-    
+
             let list_final=[list_radioButton,list_input]
             let data=JSON.stringify(list_final)
             let data_localStorage=localStorage.getItem(game_data.world+"support_withdraw_settings")
@@ -426,8 +509,7 @@ function createMainInterface(dataOwn,dataAllies, players){
         $(".hideMobile").hide()
         $(".tableSettings").find("input[type=text]").css("width","100%")
     }
-
-    Object.keys(dataOwn.troops).forEach(troopName=>{
+ Object.keys(dataOwn.troops).forEach(troopName=>{
         if(document.getElementById(troopName + "total") != undefined)
             document.getElementById(troopName + "total").value = (dataOwn.troops[troopName] / 1000).toFixed(1)
     })
@@ -441,7 +523,7 @@ function createMainInterface(dataOwn,dataAllies, players){
         let distanceMax = parseFloat($("#distanceMax").val())
         distanceMin = Number.isNaN(distanceMin) ? 0 : distanceMin
         distanceMax = Number.isNaN(distanceMax) ? 999 : distanceMax
-    
+
         let dataTroopsOwn = dataTroops
             .filter(elem => elem.playerName == game_data.player.name)
             .filter(elem => elem.distance > distanceMin && elem.distance < distanceMax)
@@ -474,12 +556,10 @@ function createMainInterface(dataOwn,dataAllies, players){
 
         console.log(troops)
         console.log(pop)
-    })
-
-    //input chance distance min max for allies
+    })//input chance distance min max for allies
     $(".tableSettings input[id=distanceMin2], .tableSettings input[id=distanceMax2] ").on("click input change",()=>{
         updateValuesAllies()
-    
+
     })
     if(game_data.device !="desktop"){
         $(".hideMobile").hide()
@@ -512,227 +592,6 @@ function updateValuesAllies(){
     console.log(pop)
 }
 
-function getColorDarker(hexInput, percent) {
-    let hex = hexInput;
-
-    // strip the leading # if it's there
-    hex = hex.replace(/^\s*#|\s*$/g, "");
-
-    // convert 3 char codes --> 6, e.g. `E0F` --> `EE00FF`
-    if (hex.length === 3) {
-        hex = hex.replace(/(.)/g, "$1$1");
-    }
-
-    let r = parseInt(hex.substr(0, 2), 16);
-    let g = parseInt(hex.substr(2, 2), 16);
-    let b = parseInt(hex.substr(4, 2), 16);
-
-    const calculatedPercent = (100 + percent) / 100;
-
-    r = Math.round(Math.min(255, Math.max(0, r * calculatedPercent)));
-    g = Math.round(Math.min(255, Math.max(0, g * calculatedPercent)));
-    b = Math.round(Math.min(255, Math.max(0, b * calculatedPercent)));
-
-    return `#${("00"+r.toString(16)).slice(-2).toUpperCase()}${("00"+g.toString(16)).slice(-2).toUpperCase()}${("00"+b.toString(16)).slice(-2).toUpperCase()}`
-}
-
-function changeTheme(){
-    let html= `
-    <h3 style="color:${textColor};padding-left:10px;padding-top:5px">after theme is selected run the script again<h3>
-    <table class="scriptTable" >
-        
-        <tr>
-            <td>
-                <select  id="select_theme">
-                    <option value="theme1">theme1</option>
-                    <option value="theme2">theme2</option>
-                    <option value="theme3">theme3</option>
-                    <option value="theme4">theme4</option>
-                    <option value="theme5">theme5</option>
-                    <option value="theme6">theme6</option>
-                    <option value="theme7">theme7</option>
-                    <option value="theme8">theme8</option>
-                    <option value="theme9">theme9</option>
-                    <option value="theme10">theme10</option>
-                </select>
-            </td>
-            <td>value</td>
-            <td >color hex</td>
-        </tr>
-        <tr>
-            <td>textColor</td>
-            <td style="background-color:${textColor}" class="td_background"></td>
-            <td><input type="text" class="scriptInput input_theme" value="${textColor}"></td>
-        </tr>
-        <tr>
-            <td>backgroundInput</td>
-            <td style="background-color:${backgroundInput}" class="td_background"></td>
-            <td><input type="text" class="scriptInput input_theme" value="${backgroundInput}"></td>
-        </tr>
-        <tr>
-            <td>borderColor</td>
-            <td style="background-color:${borderColor}" class="td_background"></td>
-            <td><input type="text" class="scriptInput input_theme" value="${borderColor}"></td>
-        </tr>
-        <tr>
-            <td>backgroundContainer</td>
-            <td style="background-color:${backgroundContainer}" class="td_background"></td>
-            <td><input type="text" class="scriptInput input_theme" value="${backgroundContainer}"></td>
-        </tr>
-        <tr>
-            <td>backgroundHeader</td>
-            <td style="background-color:${backgroundHeader}" class="td_background"></td>
-            <td><input type="text" class="scriptInput input_theme" value="${backgroundHeader}"></td>
-        </tr>
-        <tr>
-            <td>backgroundMainTable</td>
-            <td style="background-color:${backgroundMainTable}" class="td_background"></td>
-            <td><input type="text" class="scriptInput input_theme" value="${backgroundMainTable}"></td>
-        </tr>
-        <tr>
-            <td>backgroundInnerTable</td>
-            <td style="background-color:${backgroundInnerTable}" class="td_background"></td>
-            <td><input type="text" class="scriptInput input_theme" value="${backgroundInnerTable}"></td>
-        </tr>
-        <tr>
-            <td>widthInterface</td>
-            <td><input type="range" min="25" max="100" class="slider input_theme" id="input_slider_width" value="${widthInterface}"></td>
-            <td id="td_width">${widthInterface}%</td>
-        </tr>
-        <tr >
-            <td><input class="btn evt-confirm-btn btn-confirm-yes" type="button" id="btn_save_theme" value="Save"></td>
-            <td><input class="btn evt-confirm-btn btn-confirm-yes" type="button" id="btn_reset_theme" value="Default themes"></td>
-            <td></td>
-        </tr>
-
-    </table>
-    `
-    $("#theme_settings").append(html)
-    $("#theme_settings").hide()
-
-    let selectedTheme = ""
-    let colours =[]
-    let mapTheme = new Map()
-
-    $("#select_theme").on("change",()=>{
-        if(localStorage.getItem(localStorageThemeName) != undefined){
-            selectedTheme = $('#select_theme').find(":selected").text();
-            colours = Array.from($(".input_theme")).map(elem=>elem.value.toUpperCase().trim())
-            mapTheme = new Map(JSON.parse(localStorage.getItem(localStorageThemeName)))
-            console.log(selectedTheme)
-            console.log(mapTheme)
-            colours = mapTheme.get(selectedTheme)
-            console.log(colours)
-            Array.from($(".input_theme")).forEach((elem,index)=>{
-                elem.value = colours[index]
-            })
-            Array.from($(".td_background")).forEach((elem,index)=>{
-                elem.style.background = colours[index]
-            })
-
-            mapTheme.set("currentTheme",selectedTheme)
-            localStorage.setItem(localStorageThemeName, JSON.stringify(Array.from(mapTheme.entries())))
-        }
-    })
-
-    $("#btn_save_theme").on("click",()=>{
-        colours = Array.from($(".input_theme")).map(elem=>elem.value.toUpperCase().trim())
-        selectedTheme = $('#select_theme').find(":selected").text();
-
-        for(let i=0;i<colours.length-1;i++){
-            if(colours[i].match(/#[0-9 A-F]{6}/) == null ){
-                UI.ErrorMessage("wrong colour: "+colours[i])  
-                throw new Error("wrong colour")
-            }
-        }
-
-        if(localStorage.getItem(localStorageThemeName) != undefined)
-            mapTheme = new Map(JSON.parse(localStorage.getItem(localStorageThemeName)))
-
-
-        mapTheme.set(selectedTheme,colours)
-        mapTheme.set("currentTheme",selectedTheme)
-
-        localStorage.setItem(localStorageThemeName, JSON.stringify(Array.from(mapTheme.entries())))
-        console.log("saved colours for: "+selectedTheme)
-        UI.SuccessMessage(`saved colours for: ${selectedTheme} \n run the script again`,1000)
-
-
-    })
-
-    $("#btn_reset_theme").on("click",()=>{
-        localStorage.setItem(localStorageThemeName, defaultTheme)
-        UI.SuccessMessage("run the script again",1000)
-
-    })
-    $("#input_slider_width").on("input",()=>{
-        $("#td_width").text($("#input_slider_width").val()+"%")
-    })
-
-
-    if(localStorage.getItem(localStorageThemeName) != undefined){
-        mapTheme = new Map(JSON.parse(localStorage.getItem(localStorageThemeName)))
-        let currentTheme=mapTheme.get("currentTheme")
-        document.querySelector('#select_theme').value=currentTheme
-    }
-
-    
-}
-
-function initializationTheme(){
-    if(localStorage.getItem(localStorageThemeName) != undefined){
-        let mapTheme = new Map(JSON.parse(localStorage.getItem(localStorageThemeName)))
-        let currentTheme=mapTheme.get("currentTheme")
-        let colours=mapTheme.get(currentTheme)
-
-        textColor=colours[0]
-        backgroundInput=colours[1]
-
-        borderColor = colours[2]
-        backgroundContainer=colours[3]
-        backgroundHeader=colours[4]
-        backgroundMainTable=colours[5]
-        backgroundInnerTable=colours[6]
-        widthInterface=colours[7]
-
-        if(game_data.device != "desktop"){
-            widthInterface = 98
-        }
-
-        backgroundAlternateTableEven=backgroundContainer;
-        backgroundAlternateTableOdd=getColorDarker(backgroundContainer,headerColorAlternateTable);       
-        console.log("textColor: "+textColor)
-        console.log("backgroundContainer: "+backgroundContainer)
-        
-    }
-    else{
-        localStorage.setItem(localStorageThemeName, defaultTheme)
-
-        let mapTheme = new Map(JSON.parse(localStorage.getItem(localStorageThemeName)))
-        let currentTheme=mapTheme.get("currentTheme")
-        let colours=mapTheme.get(currentTheme)
-
-        textColor=colours[0]
-        backgroundInput=colours[1]
-
-        borderColor = colours[2]
-        backgroundContainer=colours[3]
-        backgroundHeader=colours[4]
-        backgroundMainTable=colours[5]
-        backgroundInnerTable=colours[6]
-        widthInterface=colours[7]
-
-        if(game_data.device != "desktop"){
-            widthInterface = 98
-        }
-
-        backgroundAlternateTableEven=backgroundContainer;
-        backgroundAlternateTableOdd=getColorDarker(backgroundContainer,headerColorAlternateTable);  
-    }
-
-}
-
-
 function addEventPanel(){
     $('.tab-panels .tabs li').each((index,item)=>{
         // console.log(item.id)
@@ -749,17 +608,15 @@ function addEventPanel(){
                 var $panel = $(this).closest('.tab-panels');
                 $panel.find('.tabs li.active').removeClass('active');
                 $(this).addClass('active');
-        
+
                 //figure out which panel to show
                 var panelToShow = $(this).attr('rel');
                 if(panelToShow!=undefined){
                     //hide current panel
-                    $panel.find('.panel.active').slideUp(300, showNextPanel);
-            
-                    //show next panel
+                    $panel.find('.panel.active').slideUp(300, showNextPanel); //show next panel
                     function showNextPanel() {
                         $(this).removeClass('active');
-            
+
                         $('#'+panelToShow).slideDown(300, function() {
                             $(this).addClass('active');
                         });
@@ -798,9 +655,7 @@ function getDataTroops(){
     let distanceHtml = rows[0].insertCell(lengthTd-1);
     distanceHtml.outerHTML="<th class='info'><a href=#>distance</a></th>";
 
-
-
-    //add first and second row
+//add first and second row
     let rowsSort = []
     if(startRow == 1){
         rowsSort.push({
@@ -847,8 +702,7 @@ function getDataTroops(){
             totalPop += troopValue * troopsPop[troopName]
             troops[troopName] = parseInt(troopValue)
         })
-
-        rowsSort.push({
+rowsSort.push({
             tr: rows[i],
             distance: distance
         })
@@ -863,10 +717,10 @@ function getDataTroops(){
 
         playerNameHtml = rows[i].insertCell(lengthTd-1)
         playerNameHtml.outerHTML=`<td class='info'><center>${playerOrigin}</center></td>`
-        
+
         popHtml = rows[i].insertCell(lengthTd-1)
         popHtml.outerHTML=`<td class='info'><center>${totalPop}</center></td>`
-    
+
         distanceHtml = rows[i].insertCell(lengthTd-1)
         distanceHtml.outerHTML=`<td class='info'><center>${distance.toFixed(1)}</center></td>`
     }
@@ -881,12 +735,6 @@ function getDataTroops(){
         return (o1.distance > o2.distance) ? 1 : (o1.distance < o2.distance) ? -1 : 0
     }).map(elem=>elem.tr)
 
-    // $("#withdraw_selected_units_village_info tbody tr").remove()
-    // $("#withdraw_selected_units_village_info tbody").append(rowsSort)
-
-    
-    // console.log(rowsSort)
-    // console.log(rows)
     console.log(rowsSort)
 
     let troopNames = ["spear", "sword", "archer", "spy", "heavy"]
@@ -944,7 +792,7 @@ function withdrawAllies(){
     let withdrawTroops = parseFloat(document.getElementById("quantity_allies").value) * 1000;
     let totalPop = parseFloat(document.getElementById("packets_totalAllies").value) * 1000
     if(withdrawTroops > totalPop){
-        UI.ErrorMessage("quantity is bigger than total pop")    
+        UI.ErrorMessage("quantity is bigger than total pop")
         throw new Error("quantity is bigger than total pop")
     }
     withdrawTroops = (type == "withdraw" ) ? withdrawTroops : totalPop - withdrawTroops
@@ -998,13 +846,9 @@ function withdrawAllies(){
             $(dataTroopsAllies[i].tr).find(".troop-request-selector").click()
     }
 
-    for(let i=0;i<listWithdraw.length;i++){ 
+    for(let i=0;i<listWithdraw.length;i++){
         $(listWithdraw[i].tr).find(".troop-request-selector").click()
     }
-  
-
-    // console.log(listWithdraw)
-    // console.log(dataTroops)
 }
 
 function withdrawOwn(){
@@ -1012,9 +856,7 @@ function withdrawOwn(){
     let typeWithdraw = $('input[name="typeWithdraw"]:checked').val();
     let packetWithdraw = parseFloat($("#packets_leave").val()) * 1000
     let packetsTotal = parseFloat($("#packets_total").val()) * 1000
-    let spyTotal = parseFloat($("#spytotal").val()) * 1000
     packetWithdraw = (type == "withdraw") ? packetWithdraw : packetsTotal - packetWithdraw
-    console.log("withdraw",packetWithdraw)
 
     let distanceMin = parseFloat($("#distanceMin").val())
     let distanceMax = parseFloat($("#distanceMax").val())
@@ -1025,12 +867,9 @@ function withdrawOwn(){
         .filter(elem => elem.playerName == game_data.player.name)
         .filter(elem => elem.distance > distanceMin && elem.distance < distanceMax)
 
-
-    let totalTroops = Array.from($(".totalTroops")).map(elem=>parseFloat(elem.value) * 1000)
-    let leaveTroops = Array.from($(".leaveTroops")).map(elem=>parseFloat(elem.value) * 1000)
-    let troopNames =  Array.from($(".totalTroops")).map(elem=>elem.id.replace("total",""))
-
-
+    let totalTroops = Array.from($(".totalTroops")).map(elem => parseFloat(elem.value) * 1000)
+    let leaveTroops = Array.from($(".leaveTroops")).map(elem => parseFloat(elem.value) * 1000)
+    let troopNames = Array.from($(".totalTroops")).map(elem => elem.id.replace("total", ""))
 
     let factorAverage = {}
     for(let i=0;i<totalTroops.length;i++){
@@ -1042,20 +881,14 @@ function withdrawOwn(){
             factorAverage[troopNames[i]] = Number.isNaN(leaveTroops[i] / totalTroops[i]) ? 0 : leaveTroops[i] / totalTroops[i]
         else
             factorAverage[troopNames[i]] = Number.isNaN((totalTroops[i] - leaveTroops[i]) / totalTroops[i]) ? 0 : (totalTroops[i] - leaveTroops[i]) / totalTroops[i]
-
     }
 
-    console.log(dataTroopsOwn)
     for(let i=0;i<dataTroopsOwn.length;i++){
         let checked = $(dataTroopsOwn[i].tr).find(".troop-request-selector").prop("checked")
         if(checked == true)
             $(dataTroopsOwn[i].tr).find(".troop-request-selector").click()
     }
-    if(packetWithdraw == 0  && spyTotal == 0)
-        throw new Error("nothing to withdraw")
 
-
-    let tempPacketWithdraw = packetWithdraw
     if(typeWithdraw == "even"){
         for(let i=0;i<dataTroopsOwn.length;i++){
             $(dataTroopsOwn[i].tr).find(".troop-request-selector").click()
@@ -1064,58 +897,53 @@ function withdrawOwn(){
                 $(dataTroopsOwn[i].tr).find(`#${troopName}`).find("input").val(newValue)
             })
         }
+        if(type == "withdraw")
+            document.getElementById("troops_own_withdrawn").innerText = "withdraw: " + (packetWithdraw / 1000).toFixed(1) + " k"
+        else
+            document.getElementById("troops_own_withdrawn").innerText = "leave: " + ((packetsTotal - packetWithdraw) / 1000).toFixed(1) + " k"
     }
     else{
-        dataTroopsOwn = dataTroopsOwn.sort((o1,o2) => {
-            return (o1.distance > o2.distance) ? 1 : (o1.distance < o2.distance) ? -1 : 0
-        })
+        dataTroopsOwn = dataTroopsOwn.sort((o1,o2) => o1.distance - o2.distance)
 
+        let needPerType = {}
+        for(let i=0;i<troopNames.length;i++){
+            let need = (type == "withdraw") ? leaveTroops[i] : totalTroops[i] - leaveTroops[i]
+            needPerType[troopNames[i]] = Number.isNaN(need) ? 0 : Math.max(0, need)
+        }
+
+        let popWithdrawn = 0
         for(let i=0;i<dataTroopsOwn.length;i++){
-            if(tempPacketWithdraw <= 0) break
-
-            let rowPop = 0
-            let perUnit = {}
-
+            let village = dataTroopsOwn[i]
+            let take = {}
+            let anySelected = false
             troopNames.forEach(troopName => {
-                let baseValue = parseInt(dataTroopsOwn[i].troops[troopName] * factorAverage[troopName])
-                baseValue = Number.isNaN(baseValue) ? 0 : baseValue
-                perUnit[troopName] = baseValue
-                rowPop += baseValue * troopsPop[troopName]
+                let available = village.troops[troopName] || 0
+                let t = Math.min(needPerType[troopName], available)
+                t = (Number.isNaN(t) || t < 0) ? 0 : parseInt(t)
+                take[troopName] = t
+                if(t > 0) anySelected = true
+            })
+            if(!anySelected) continue
+
+            $(village.tr).find(".troop-request-selector").click()
+            troopNames.forEach(troopName => {
+                let input = village.tr.querySelector(`td#${troopName} input`)
+                if(input && !input.disabled){
+                    input.value = take[troopName]
+                    needPerType[troopName] -= take[troopName]
+                    if(troopName != "spy")
+                        popWithdrawn += take[troopName] * troopsPop[troopName]
+                }
             })
 
-            if(rowPop <= 0) continue
-
-            $(dataTroopsOwn[i].tr).find(".troop-request-selector").click()
-
-            if(tempPacketWithdraw < rowPop){
-                let scale = tempPacketWithdraw / rowPop
-                troopNames.forEach(troopName => {
-                    let newValue = parseInt(perUnit[troopName] * scale)
-                    $(dataTroopsOwn[i].tr).find(`#${troopName}`).find("input").val(newValue)
-                })
-                tempPacketWithdraw = 0
-            }else{
-                troopNames.forEach(troopName => {
-                    $(dataTroopsOwn[i].tr).find(`#${troopName}`).find("input").val(perUnit[troopName])
-                })
-                tempPacketWithdraw -= rowPop
-            }
+            if(troopNames.every(tn => needPerType[tn] <= 0)) break
         }
+
+        if(type == "withdraw")
+            document.getElementById("troops_own_withdrawn").innerText = "withdraw: " + (popWithdrawn / 1000).toFixed(1) + " k"
+        else
+            document.getElementById("troops_own_withdrawn").innerText = "leave: " + ((packetsTotal - popWithdrawn) / 1000).toFixed(1) + " k"
     }
-    console.log("wtf"+((packetWithdraw)))
-    console.log("tempPacketWithdraw: " +tempPacketWithdraw)
-
-    if(type == "withdraw" && typeWithdraw == "closest")
-        document.getElementById("troops_own_withdrawn").innerText = "withdraw: " + ((packetWithdraw - tempPacketWithdraw) / 1000).toFixed(1) +" k"
-    else if (type == "leave" && typeWithdraw == "closest")
-        document.getElementById("troops_own_withdrawn").innerText = "leave: " + ((packetsTotal - packetWithdraw + tempPacketWithdraw) / 1000).toFixed(1) +" k"
-    if(type == "withdraw" && typeWithdraw == "even")
-        document.getElementById("troops_own_withdrawn").innerText = "withdraw: " + ((packetWithdraw ) / 1000).toFixed(1) +" k"
-    else if (type == "leave" && typeWithdraw == "even")
-        document.getElementById("troops_own_withdrawn").innerText = "leave: " + ((packetsTotal - packetWithdraw ) / 1000).toFixed(1) +" k"
-         
-
-
 }
 
 function addEvents(){
@@ -1129,10 +957,10 @@ function addEvents(){
             if(id.includes("spear") || id.includes("sword") || id.includes("archer") || id.includes("heavy")){
                 totalPop += parseFloat(value) * 1000 * troopsPop[id.replace("total", "")]
             }
-      
+
         }
         document.getElementById("packets_leave").value=(totalPop/1000).toFixed(2)
-    
+
     });
     // $('.packets_send').off('input')
     $('#packets_leave').on('input',function(e){
@@ -1156,7 +984,7 @@ function addEvents(){
         }
 
 
-    
+
     });
 }
 
@@ -1169,7 +997,7 @@ function hitCountApi(){
             console.log(`This script has been run on mobile: ${response.count} times`);
         });
     }
- 
+
     $.getJSON(`https://api.counterapi.dev/v1/${countNameSpace}/${countApiKey}_id2${game_data.player.id}/up`, response=>{
         if(response.count == 1){
             $.getJSON(`https://api.counterapi.dev/v1/${countNameSpace}/${countApiKey}_scriptUsers/up`, response=>{});
@@ -1180,8 +1008,8 @@ function hitCountApi(){
     try {
         $.getJSON(`https://api.counterapi.dev/v1/${countNameSpace}/${countApiKey}_scriptUsers`, response=>{
             console.log(`Total number of users: ${response.count}`);
-        }); 
-      
+        });
+
     } catch (error) {}
 
 }

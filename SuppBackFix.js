@@ -13,7 +13,7 @@ var troopsPop = {
     snob : 100,
     militia: 1
 };
-troopsPop.heavy=heavyCav
+troopsPop.heavy=4
 
 var units=game_data.units;
 var unitsLength=units.length;

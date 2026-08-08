@@ -313,7 +313,6 @@ function addCssStyle() {
     style.appendChild(document.createTextNode(cssStyle));
     document.head.appendChild(style);
 }
-
 function main() {
     addCssStyle();
     createMainInterface();

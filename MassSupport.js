@@ -103,49 +103,59 @@ function addCssStyle() {
             min-height: unset !important;
             aspect-ratio: auto !important;
             background: #f1e3bd;
-            border: 2px solid #5b3a16;
-            border-radius: 2px;
-            box-shadow: 0 4px 14px rgba(0,0,0,.55);
+            border: 1px solid #c9ab72;
+            border-radius: 10px;
+            box-shadow: 0 8px 24px rgba(59,38,13,.25), 0 2px 6px rgba(59,38,13,.15);
             cursor: move;
             z-index: 99999;
             font-family: Verdana, Arial, sans-serif;
             color: #2b1b08;
-            overflow: visible !important;
+            overflow: hidden !important;
+            transition: box-shadow .2s ease;
         }
 
         #div_container .scriptHeader {
-            background:
-                linear-gradient(to bottom, rgba(255,255,255,.12), rgba(0,0,0,.18)),
-                #7b4a18;
+            background: linear-gradient(to bottom, #8a5a24, #7b4a18);
             color: #f9e7b7;
-            border-bottom: 2px solid #3d260d;
-            min-height: 32px;
+            border-bottom: none;
+            min-height: 36px;
             display: flex;
             justify-content: center;
             align-items: center;
-            text-shadow: 1px 1px #000;
+            text-shadow: 1px 1px 1px rgba(0,0,0,.4);
+            position: relative;
         }
 
         #div_container .scriptHeader h2 {
-            font-size: 15px;
+            font-size: 14px;
             margin: 0;
-            letter-spacing: .2px;
-            line-height: 32px;
+            letter-spacing: .3px;
+            line-height: normal;
+            font-weight: bold;
+        }
+
+        #div_container .scriptHeader a img {
+            opacity: .85;
+            transition: opacity .15s ease, transform .15s ease;
+            border-radius: 5px;
+        }
+
+        #div_container .scriptHeader a:hover img {
+            opacity: 1;
+            transform: scale(1.08);
         }
 
         #div_container .scriptFooter {
-            background:
-                linear-gradient(to bottom, rgba(255,255,255,.08), rgba(0,0,0,.18)),
-                #6e4215;
-            color: #f9e7b7;
-            border-top: 1px solid #3d260d;
+            background: #e9d7a8;
+            color: #6b4a1e;
+            border-top: 1px solid #d4bb84;
             display: flex;
             justify-content: flex-end;
             align-items: center;
-            padding: 3px 10px;
-            min-height: 22px;
+            padding: 4px 12px;
+            min-height: 20px;
             box-sizing: border-box;
-            text-shadow: 1px 1px #000;
+            text-shadow: none;
         }
 
         #div_container .scriptFooter h5 {
@@ -153,31 +163,31 @@ function addCssStyle() {
             font-size: 10px;
             line-height: 16px;
             font-weight: normal;
-            color: #f9e7b7;
+            color: #8a6a35;
             white-space: nowrap;
+            letter-spacing: .2px;
         }
 
         #div_container #div_body {
             background: #f1e3bd;
-            padding: 2px 0 5px;
+            padding: 10px 10px 8px;
             height: auto !important;
             overflow: visible !important;
         }
 
         #div_container .scriptTable {
-            width: 96%;
-            margin: 8px auto;
+            width: 100%;
+            margin: 0 auto;
             border-collapse: separate;
-            border-spacing: 0;
+            border-spacing: 0 3px;
             table-layout: fixed;
-            border: 1px solid #b09158;
-            background: #f6e8c4;
+            border: none;
+            background: transparent;
         }
 
         #div_container .scriptTable td {
-            border-right: 1px solid #c4a76f;
-            border-bottom: 1px solid #c4a76f;
-            padding: 5px;
+            border: none;
+            padding: 7px 5px;
             text-align: center;
             color: #2b1b08;
             font-size: 12px;
@@ -185,33 +195,38 @@ function addCssStyle() {
             text-overflow: ellipsis;
         }
 
-        #div_container .scriptTable td:last-child {
-            border-right: none;
+        #div_container .scriptTable tr:not(:first-child) {
+            background: #f8efd6;
+            box-shadow: 0 1px 2px rgba(59,38,13,.08);
         }
 
-        #div_container .scriptTable tr:last-child td {
-            border-bottom: none;
+        #div_container .scriptTable tr:not(:first-child) td:first-child {
+            border-radius: 6px 0 0 6px;
         }
 
-        #div_container .scriptTable tr:nth-child(odd) td {
-            background: #ead7aa;
+        #div_container .scriptTable tr:not(:first-child) td:last-child {
+            border-radius: 0 6px 6px 0;
         }
 
-        #div_container .scriptTable tr:nth-child(even) td {
-            background: #f7ebcb;
+        #div_container .scriptTable tr:nth-child(odd):not(:first-child) {
+            background: #f2e4bf;
         }
 
         #div_container .scriptTable tr:first-child td {
-            background:
-                linear-gradient(to bottom, rgba(255,255,255,.18), rgba(0,0,0,.15)),
-                #b58b4a;
-            color: #2b1b08;
+            background: #dcc48c;
+            color: #4a3210;
             font-weight: bold;
             text-shadow: none !important;
+            border-radius: 6px;
+            font-size: 11px;
+            letter-spacing: .3px;
+            text-transform: uppercase;
+            padding: 5px;
         }
 
-        #div_container .scriptTable tr:not(:first-child):hover td {
-            background: #fff4d7;
+        #div_container .scriptTable tr:not(:first-child):hover {
+            background: #fbeecb;
+            box-shadow: 0 2px 5px rgba(59,38,13,.15);
         }
 
         #div_container #table_upload td,
@@ -228,44 +243,63 @@ function addCssStyle() {
         #div_container input[type="datetime-local"],
         #div_container select {
             width: 70%;
-            background: #fffaf0;
+            background: #fffcf3;
             color: #2b1b08;
-            border: 1px solid #8b652b;
-            border-radius: 2px;
-            padding: 2px 4px;
+            border: 1px solid #d4bb84;
+            border-radius: 5px;
+            padding: 3px 6px;
             text-align: center;
             font-size: 12px;
-            box-shadow: inset 0 1px 2px rgba(0,0,0,.18);
+            box-shadow: inset 0 1px 2px rgba(59,38,13,.08);
             box-sizing: border-box;
+            transition: border-color .15s ease, box-shadow .15s ease;
+        }
+
+        #div_container .scriptInput:focus,
+        #div_container input[type="number"]:focus,
+        #div_container input[type="text"]:focus,
+        #div_container input[type="datetime-local"]:focus {
+            outline: none;
+            border-color: #a97c37;
+            box-shadow: 0 0 0 2px rgba(169,124,55,.25);
         }
 
         #div_container input:disabled {
-            background: #d9c79a;
-            color: #4a3513;
+            background: #eadfc0;
+            color: #8a7248;
+            border-color: #ddcda1;
         }
 
         #div_container input[type="checkbox"] {
             vertical-align: middle;
+            accent-color: #8a5a24;
         }
 
         #div_container button.btn,
         #div_container input[type="button"].btn {
-            background:
-                linear-gradient(to bottom, #f8dfaa, #b78943);
-            border: 1px solid #5d3912;
-            color: #2b1b08;
+            background: linear-gradient(to bottom, #eec978, #cc9a44);
+            border: 1px solid #a97c37;
+            color: #3a2410;
             font-weight: bold;
-            border-radius: 2px;
-            padding: 3px 10px;
+            border-radius: 6px;
+            padding: 5px 14px;
             font-size: 12px;
             cursor: pointer;
-            box-shadow: inset 0 1px rgba(255,255,255,.45);
+            box-shadow: 0 1px 2px rgba(59,38,13,.2), inset 0 1px rgba(255,255,255,.4);
+            transition: transform .1s ease, box-shadow .15s ease, background .15s ease;
+            margin: 2px;
         }
 
         #div_container button.btn:hover,
         #div_container input[type="button"].btn:hover {
-            background:
-                linear-gradient(to bottom, #fff0c4, #c79748);
+            background: linear-gradient(to bottom, #f8dd9a, #dcae55);
+            box-shadow: 0 2px 5px rgba(59,38,13,.28), inset 0 1px rgba(255,255,255,.5);
+        }
+
+        #div_container button.btn:active,
+        #div_container input[type="button"].btn:active {
+            transform: translateY(1px);
+            box-shadow: 0 1px 1px rgba(59,38,13,.2), inset 0 1px rgba(255,255,255,.3);
         }
 
         #div_container img {
@@ -295,14 +329,14 @@ function createMainInterface() {
     let html = `
     <div id="div_container" class="scriptContainer">
         <div class="scriptHeader">
-            <div style="margin-top:10px;"><h2>Support sender</h2></div>
-            <div style="position:absolute;top:10px;right:10px;">
+            <div><h2>Support sender</h2></div>
+            <div style="position:absolute;top:50%;right:10px;transform:translateY(-50%);">
                 <a href="#" onclick="$('#div_container').remove()">
                     <img src="https://img.icons8.com/emoji/24/000000/cross-mark-button-emoji.png"/>
                 </a>
             </div>
-            <div style="position:absolute;top:8px;right:35px;" id="div_minimize">
-                <a href="#">
+            <div style="position:absolute;top:50%;right:35px;" id="div_minimize">
+                <a href="#" style="display:block;transform:translateY(-50%);">
                     <img src="https://img.icons8.com/plasticine/28/000000/minimize-window.png"/>
                 </a>
             </div>

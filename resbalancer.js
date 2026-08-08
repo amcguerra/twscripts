@@ -426,8 +426,8 @@ function createMainInterface(){
     $("#mobileContent").eq(0).prepend(html_info);
     
     if(game_data.device != "desktop"){
-        $("#div_body").css("height","500px")
-    }
+    $("#div_body").css("max-height","500px")
+}
 
 
 

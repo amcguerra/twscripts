@@ -3,29 +3,25 @@
 // original by Costache • optimized by amc
 
 
-
-
-
 if(typeof(TWMap) !="undefined" )
     var  originalSpawnSector = TWMap.mapHandler.spawnSector;
 
 var textColor = "#2b1b08";
-var widthInterface = (game_data.device != "desktop") ? 98 : 50;//percentage
-    
+var widthInterface = (game_data.device != "desktop") ? "98%" : "760px";
+var settingsOpen = true;
+var minimizedWidth = (game_data.device != "desktop") ? "20%" : "220px";
     function main(){
         addCssStyle();
         createMainInterface();
     }
     main()
-    
-    
 
 function addCssStyle(){
     document.getElementById("resource_balancer_css")?.remove();
 
     const cssStyle = `
         #div_container.scriptContainer {
-            width: ${widthInterface}%;
+            width: ${widthInterface};
             height: auto !important;
             min-height: unset !important;
             aspect-ratio: auto !important;
@@ -99,7 +95,7 @@ function addCssStyle(){
             background: #f1e3bd;
             padding: 10px 10px 8px;
             height: auto !important;
-            max-height: 600px !important;
+            max-height: 75vh !important;
             overflow-y: auto !important;
             overflow-x: hidden !important;
         }
@@ -277,6 +273,135 @@ function addCssStyle(){
             border-radius: 6px;
             border: 2px solid #e9d7a8;
         }
+
+        #div_container .settingsPanel {
+            background: #f1e3bd;
+            border: 1px solid #c9ab72;
+            border-radius: 8px;
+            margin-bottom: 12px;
+            overflow: hidden;
+        }
+
+        #div_container .settingsPanel summary {
+            cursor: pointer;
+            list-style: none;
+            padding: 9px 12px;
+            font-size: 12px;
+            font-weight: bold;
+            letter-spacing: .3px;
+            color: #4a3210;
+            background: #dcc48c;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        #div_container .settingsPanel summary::-webkit-details-marker {
+            display: none;
+        }
+
+        #div_container .settingsPanel summary .settingsChevron {
+            transition: transform .15s ease;
+            font-size: 10px;
+        }
+
+        #div_container .settingsPanel[open] summary .settingsChevron {
+            transform: rotate(90deg);
+        }
+
+        #div_container .settingsBody {
+            padding: 10px 12px 12px;
+        }
+
+        #div_container .settingsGroup {
+            margin-bottom: 10px;
+        }
+
+        #div_container .settingsGroup:last-child {
+            margin-bottom: 0;
+        }
+
+        #div_container .settingsGroupTitle {
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: .5px;
+            color: #8a6a35;
+            margin-bottom: 6px;
+        }
+
+        #div_container .settingsGroupFields {
+            background: #f8efd6;
+            border: 1px solid #dcc48c;
+            border-radius: 6px;
+            padding: 2px 10px;
+        }
+
+        #div_container .settingsFieldRow {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 0;
+        }
+
+        #div_container .settingsFieldRow:not(:last-child) {
+            border-bottom: 1px solid #ecdcb2;
+        }
+
+        #div_container .settingsFieldRow label {
+            flex: 1;
+            font-size: 12px;
+            color: #2b1b08;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            gap: 5px;
+        }
+
+        #div_container .settingsFieldValue {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #div_container .settingsFieldValue .scriptInput {
+            width: 75px;
+            text-align: center;
+        }
+
+        #div_container .capacityToggle {
+            display: flex;
+            border: 1px solid #c9ab72;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+
+        #div_container .capacityToggle button {
+            border: none;
+            background: #fffcf3;
+            color: #8a6a35;
+            font-size: 11px;
+            font-weight: bold;
+            padding: 4px 14px;
+            cursor: pointer;
+        }
+
+        #div_container .capacityToggle button:first-child {
+            border-right: 1px solid #c9ab72;
+        }
+
+        #div_container .capacityToggle button.active {
+            background: #cc9a44;
+            color: #3a2410;
+        }
+
+        #div_container .startBalancing {
+            width: 100%;
+            padding: 12px;
+            font-size: 13px;
+            letter-spacing: .3px;
+        }
     `;
 
     const style = document.createElement("style");
@@ -289,10 +414,8 @@ function addCssStyle(){
 function getColorDarker(hexInput, percent) {
     let hex = hexInput;
 
-    // strip the leading # if it's there
     hex = hex.replace(/^\s*#|\s*$/g, "");
 
-    // convert 3 char codes --> 6, e.g. `E0F` --> `EE00FF`
     if (hex.length === 3) {
         hex = hex.replace(/(.)/g, "$1$1");
     }
@@ -309,30 +432,32 @@ function getColorDarker(hexInput, percent) {
 
     return `#${("00"+r.toString(16)).slice(-2).toUpperCase()}${("00"+g.toString(16)).slice(-2).toUpperCase()}${("00"+b.toString(16)).slice(-2).toUpperCase()}`
 }
-    
-
 
 function createMainInterface(){
-    console.log("createInterface")
-    let message_info_factor=`<p>if the factor is 0 your villages will receive resources only for building construction(from account manager)\n</p>
-        <p>if the factor is 1 resources will be distributed equally, at the end of balancing every village will have the same amount of resources\n</p>
-        <p>if it's for example 0.2 in this case your villages will receive 20% from average value of each resources and in adition will receive enough resources for building construction(from account manager)</p>`
-    let message_info_construction=`<p>set for how many hours the villages should have resources for building construction\n</p>
-                <p> your account manager must be active and your villages must have a template construction active,
-                otherwise this setting will be ignored `
+    let message_info_factor=`<p>Controls how full each village is topped up to, as a share of the average, before any construction reservation is added on top.\n</p>
+        <p><b>0</b> — villages get nothing from the average pool, only their construction-time reservation (if any).\n</p>
+        <p><b>1</b> — full average: every village ends up holding the same amount, aside from construction reservations.\n</p>
+        <p><b>in between</b>, e.g. 0.2 — each village is topped up to 20% of the average, plus its construction reservation on top.</p>`
+    let message_info_construction=`<p>Reserves enough resources at each village to cover this many hours of queued Account Manager construction (max 50).\n</p>
+                <p>Requires the Account Manager to be active and the village to have a construction template assigned — otherwise this setting is skipped for that village.</p>`
 
-    let message_info_cluster=`<p>if it's set to 1 cluster then balancing resources will be globally and for 2 or more it will be locally per each cluster\n</p>
-        <p>a larger number of clusters results in a shorter maximum travel time and balanced more locally which is less optimal \n</p>
-        <p>every time the script is run clusters are calculated randomly and they may not be optimally calculated  every time so look out for maximum travel distance \n</p>
-        <p>if it's run on the map it can be seen how clusters were formed and how many resources are sent and received\n</p>`
+    let message_info_cluster=`<p>Splits your villages into this many location-based groups and balances within each group separately, instead of across your whole account.\n</p>
+        <p><b>1 cluster</b> — resources can travel anywhere on your account.\n</p>
+        <p><b>more clusters</b> — shorter delivery distances, but less optimal since resources can't flow between groups.\n</p>
+        <p>Grouping is recalculated randomly each run, so results (and max travel distance) can vary run to run.\n</p>
+        <p>If you're on the map screen, cluster boundaries are drawn visually after balancing.</p>`
 
+    let message_max_construction=`<p>Only takes effect when the average factor above is 0.5 or lower.\n</p>
+        <p>When enabled, the construction time value is ignored and calculated automatically instead — the script searches upward hour by hour and fills in the highest value where every cluster still has enough surplus to cover the extra construction demand, for every resource.</p>`
 
-    let message_max_construction=`<p>if average factor is smaller than 0.5 \n</p>
-        <p>the value for construction time will be set automatically at maximum value \n</p>
-        <p>where surplus is higher than deficit for all type of resources\n</p>`
+    let twServers = [
+        "pt_PT",
+        "de_DE",
+    ]
+    let showCapacity = twServers.includes(game_data.locale)
 
     let html_info=`
-    
+
     <div id="div_container" class="scriptContainer" >
         <div class="scriptHeader">
     <div><h2>Resources balancer</h2></div>
@@ -340,73 +465,67 @@ function createMainInterface(){
     <div style="position:absolute;top:50%;right:35px;" id="div_minimize"><a href="#" style="display:block;transform:translateY(-50%);"><img src="https://img.icons8.com/plasticine/28/000000/minimize-window.png"/></a></div>
         </div>
         <div id="div_body">
-            <center>
-                <table id="table_main"  class="scriptTable">
-                    <tr>
-                        <td>setting name</td>
-                        <td>setting value</td>
-                    </tr>
-                    <tr>
-                        <td>reserve merchants</td>
-                        <td>
-                            <div style="display:flex;justify-content: center; align-items: center;   ">
-                                <div><input type="number" id="nr_merchants_reserve" class="scriptInput" placeholder="15" value="0"></div>
-                                <div><a href="#" onclick="UI.InfoMessage('how many merchants do you want to keep home',4000)"><img src="https://dsen.innogamescdn.com/asset/dbeaf8db/graphic/questionmark.png" style="width: 13px; height: 13px"/></a></div>
-                            </div>
-                        </td>
-                    </tr> 
-                    <tr>
-                        <td>construction time[hours]</td>
-                        <td>
-                            <div style="display:flex;justify-content: center; align-items: center;">
-                                <div><input type="number" id="time_construction" class="scriptInput" placeholder="0" value="0"></div>
-                                <div><a href="#" onclick="UI.InfoMessage(\`${message_info_construction}\`,15000)"><img src="https://dsen.innogamescdn.com/asset/dbeaf8db/graphic/questionmark.png" style="width: 13px; height: 13px"/></a></div>
-                            </div>
-                        </td>
-                    </tr> 
 
-                    <tr>
-                        <td>average factor[0-1]</td>
-                        <td>
-                            <div style="display:flex;justify-content: center; align-items: center;">
-                                <div><input type="number" id="nr_average_factor" class="scriptInput" placeholder="1" value="1"></div>
-                                <div><a href="#" onclick="UI.InfoMessage(\`${message_info_factor}\`,20000)"><img src="https://dsen.innogamescdn.com/asset/dbeaf8db/graphic/questionmark.png" style="width: 13px; height: 13px"/></a></div>
-                            </div>
-                        </td>
-                    </tr>
+            <details class="settingsPanel" ${settingsOpen ? "open" : ""}>
+                <summary>Settings <span class="settingsChevron">▶</span></summary>
+                <div class="settingsBody">
 
-                    <tr>
-                        <td>number of clusters</td>
-                        <td>
-                            <div style="display:flex;justify-content: center; align-items: center;">
-                                <div><center><input type="number" id="nr_clusters" class="scriptInput" placeholder="1" value="1"></div>
-                                <div><a href="#" onclick="UI.InfoMessage(\`${message_info_cluster}\`,20000)"><img src="https://dsen.innogamescdn.com/asset/dbeaf8db/graphic/questionmark.png" style="width: 13px; height: 13px"/></a></div>
+                    <div class="settingsGroup">
+                        <div class="settingsGroupFields">
+                            <div class="settingsFieldRow">
+                                <label>construction time [hours] <a href="#" onclick="UI.InfoMessage(\`${message_info_construction}\`,15000)"><img src="https://dsen.innogamescdn.com/asset/dbeaf8db/graphic/questionmark.png" style="width: 12px; height: 12px"/></a></label>
+                                <div class="settingsFieldValue">
+                                    <input type="number" id="time_construction" class="scriptInput" placeholder="0" value="0">
+                                </div>
                             </div>
-                        </td>
-                    </tr>
-                    <tr hidden id="tr_merchant_capacity">
-                        <td>merchant capacity</td>
-                        <td>
-                            <div style="display:flex;justify-content: center; align-items: center;">
-                                <div><input type="number" id="merchant_capacity" class="scriptInput" placeholder="1000" value='1000'></div>
-                                <div><a href="#" onclick="UI.InfoMessage('set merchant capacity to either 1000 or 1500',3000)"><img src="https://dsen.innogamescdn.com/asset/dbeaf8db/graphic/questionmark.png" style="width: 13px; height: 13px"/></a></div>
+                            <div class="settingsFieldRow">
+                                <label>average factor [0-1] <a href="#" onclick="UI.InfoMessage(\`${message_info_factor}\`,20000)"><img src="https://dsen.innogamescdn.com/asset/dbeaf8db/graphic/questionmark.png" style="width: 12px; height: 12px"/></a></label>
+                                <div class="settingsFieldValue">
+                                    <input type="number" id="nr_average_factor" class="scriptInput" placeholder="1" value="1" min="0" max="1" step="0.1">
+                                </div>
                             </div>
-                        </td>
-                    </tr> 
-                    <tr>
-                        <td>max construction</td>
-                        <td>
-                            <div style="display:flex;justify-content: center; align-items: center;">
-                                <div><center><input type="checkbox" id="max_construction" /></div>
-                                <div><a href="#" onclick="UI.InfoMessage(\`${message_max_construction}\`,20000)"><img src="https://dsen.innogamescdn.com/asset/dbeaf8db/graphic/questionmark.png" style="width: 13px; height: 13px"/></a></div>
+                            <div class="settingsFieldRow">
+                                <label>number of clusters <a href="#" onclick="UI.InfoMessage(\`${message_info_cluster}\`,20000)"><img src="https://dsen.innogamescdn.com/asset/dbeaf8db/graphic/questionmark.png" style="width: 12px; height: 12px"/></a></label>
+                                <div class="settingsFieldValue">
+                                    <input type="number" id="nr_clusters" class="scriptInput" placeholder="1" value="1">
+                                </div>
                             </div>
-                        </td>
-                    </tr>
-                </table>
-            </center>
+                            <div class="settingsFieldRow settingsFieldRow--checkbox">
+                                <label>max construction <a href="#" onclick="UI.InfoMessage(\`${message_max_construction}\`,20000)"><img src="https://dsen.innogamescdn.com/asset/dbeaf8db/graphic/questionmark.png" style="width: 12px; height: 12px"/></a></label>
+                                <div class="settingsFieldValue">
+                                    <input type="checkbox" id="max_construction" class="scriptInput" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="settingsGroup">
+                        <div class="settingsGroupTitle">Merchants</div>
+                        <div class="settingsGroupFields">
+                            <div class="settingsFieldRow">
+                                <label>reserve <a href="#" onclick="UI.InfoMessage('Merchants withheld at each village so they aren\\'t used to send resources this run.',4500)"><img src="https://dsen.innogamescdn.com/asset/dbeaf8db/graphic/questionmark.png" style="width: 12px; height: 12px"/></a></label>
+                                <div class="settingsFieldValue">
+                                    <input type="number" id="nr_merchants_reserve" class="scriptInput" placeholder="15" value="0">
+                                </div>
+                            </div>
+                            <div class="settingsFieldRow" ${showCapacity?"":'style="display:none"'} id="tr_merchant_capacity">
+                                <label>capacity <a href="#" onclick="UI.InfoMessage('How much each merchant can carry on your server — 1000 on most worlds, 1500 on some.',4500)"><img src="https://dsen.innogamescdn.com/asset/dbeaf8db/graphic/questionmark.png" style="width: 12px; height: 12px"/></a></label>
+                                <div class="settingsFieldValue">
+                                    <div class="capacityToggle" id="capacity_toggle">
+                                        <button type="button" data-value="1000" class="active">1000</button>
+                                        <button type="button" data-value="1500">1500</button>
+                                    </div>
+                                </div>
+                                <input type="number" id="merchant_capacity" value="1000" style="display:none">
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </details>
 
             <center>
-                <input class="btn evt-confirm-btn btn-confirm-yes" type="button" onclick="balancingResources()" style="margin:10px" value="start">
+                <input class="btn evt-confirm-btn btn-confirm-yes startBalancing" type="button" onclick="settingsOpen=false; balancingResources()" value="start">
             </center>
 
             <div id="div_tables" hidden>
@@ -415,97 +534,88 @@ function createMainInterface(){
             </div>
         </div>
 
- 
         <div class="scriptFooter">
             <div><h5>original by Costache • optimized by amc</h5></div>
         </div>
     </div>`
-    ////////////////////////////////////////add and remove window from page///////////////////////////////////////////
     $("#div_container").remove()
     $("#contentContainer").eq(0).prepend(html_info);
     $("#mobileContent").eq(0).prepend(html_info);
-    
+
     if(game_data.device != "desktop"){
     $("#div_body").css("max-height","500px")
 }
 
-
-
     $("#div_container").css("position","fixed");
-    $("#div_container").draggable()
+   $("#div_container").draggable()
 
-    
+    $("#div_container").css({left:0, right:0, top:0, bottom:0, margin:"auto"})
+    document.getElementById("div_container").style.setProperty("height","fit-content","important")
 
-
-    
-    let twServers = [
-        "pt_PT", 
-        "de_DE",
-    ]
-    if(twServers.includes(game_data.locale)){
-        $("#tr_merchant_capacity").show()
-    }
-
+    let isMinimized = false
     $("#div_minimize").on("click",()=>{
-        let currentWidthPercentage=Math.ceil($('#div_container').width() / $('body').width() * 100);
-        if(currentWidthPercentage >=widthInterface ){
-            $('#div_container').css({'width' : '10%'});
-            $('#div_body').hide();
+        isMinimized = !isMinimized
+        if(isMinimized){
+            $('#div_container').css({'width': minimizedWidth})
+            $('#div_body').hide()
         }
         else{
-            $('#div_container').css({'width' : `${widthInterface}%`});
-            $('#div_body').show();
+            $('#div_container').css({'width': widthInterface})
+            $('#div_body').show()
         }
     })
 
-
-
-    //initialization settings
     if(localStorage.getItem(game_data.world+"settings_resources_balancer2")!=null ){
-        //initialize input numbers
-        let list_input=JSON.parse(localStorage.getItem(game_data.world+"settings_resources_balancer2"))
-        $('#div_container input[type=number], #div_container input[type=checkbox]').each(function (index,elem) {
-            if(typeof(list_input[index]) == 'boolean'){
-                this.checked=list_input[index]
+        let saved=JSON.parse(localStorage.getItem(game_data.world+"settings_resources_balancer2"))
+        if(Array.isArray(saved)){
+            saved={
+                nr_merchants_reserve: saved[0],
+                time_construction:    saved[1],
+                nr_average_factor:    saved[2],
+                nr_clusters:          saved[3],
+                merchant_capacity:    saved[4],
+                max_construction:     saved[5]
             }
-            else{
-                this.value=list_input[index]
-            }
-        });
+        }
+        Object.keys(saved).forEach(id=>{
+            let el=document.getElementById(id)
+            if(!el) return
+            if(el.type==="checkbox") el.checked=saved[id]
+            else el.value=saved[id]
+        })
     }
 
+    let capacityInput = document.getElementById("merchant_capacity")
+    let capacityToggle = document.getElementById("capacity_toggle")
+    function setCapacityActive(value){
+        capacityToggle.querySelectorAll("button").forEach(btn=>{
+            btn.classList.toggle("active", btn.dataset.value == value)
+        })
+    }
+    setCapacityActive(capacityInput.value)
+    capacityToggle.querySelectorAll("button").forEach(btn=>{
+        btn.addEventListener("click",()=>{
+            capacityInput.value = btn.dataset.value
+            setCapacityActive(btn.dataset.value)
+            capacityInput.dispatchEvent(new Event("change", {bubbles:true}))
+        })
+    })
 
-    //save settings
     $("#div_container input[type=number], #div_container input[type=checkbox]").on("click input change",()=>{
-        console.log("save settings")
-        let list_input=[]
+        let settings_obj={}
 
-        //save inputs
-        $('#div_container input[type=number]').each(function () {
-            var value=this.value
-            // console.log(value)
-            list_input.push(value)
+        $('#div_container input[type=number], #div_container input[type=checkbox]').each(function(){
+            settings_obj[this.id] = (this.type==="checkbox") ? this.checked : this.value
         });
-        //save checkbox
-        $('#div_container input[type=checkbox]').each(function () {
-            var value=this.checked
-            list_input.push(value)
-        });
-    
-      
-        let data=JSON.stringify(list_input)
+
+        let data=JSON.stringify(settings_obj)
         let data_localStorage=localStorage.getItem(game_data.world+"settings_resources_balancer2")
-        // console.log(data)
-        // console.log(data_localStorage)
         if(data!=data_localStorage){
             localStorage.setItem(game_data.world+"settings_resources_balancer2",data)
         }
     })
-    
+
 }
-
-
-
 
 async function balancingResources(){
 
@@ -516,22 +626,13 @@ async function balancingResources(){
     let nrClusters=parseInt(document.getElementById("nr_clusters").value)
     let maxConstruction=document.getElementById("max_construction").checked
 
-    reserveMerchants=(Number.isNaN(reserveMerchants)==true || reserveMerchants<0 )?0:reserveMerchants //by default are 0 merchants as reserver
-    nrClusters=(Number.isNaN(nrClusters)==true || nrClusters<1 )?1:nrClusters //by default is one cluster
-    time_construction_total=(Number.isNaN(time_construction_total)==true || time_construction_total<0 )?20:time_construction_total//if something is not right by default is 20hours
-    time_construction_total=(time_construction_total > 50)?50:time_construction_total//limit construction time to 50 hours
+    reserveMerchants=(Number.isNaN(reserveMerchants)==true || reserveMerchants<0 )?0:reserveMerchants
+    nrClusters=(Number.isNaN(nrClusters)==true || nrClusters<1 )?1:nrClusters
+    time_construction_total=(Number.isNaN(time_construction_total)==true || time_construction_total<0 )?20:time_construction_total
+    time_construction_total=(time_construction_total > 50)?50:time_construction_total
 
-    averageFactor=(Number.isNaN(averageFactor)==true)?1:(averageFactor<0)?0:(averageFactor>1)?1:averageFactor //if>1 is 1 if <0 is 0 if is NaN is 1
-    merchantCapacity=(Number.isNaN(merchantCapacity)==true)?1000:(merchantCapacity<1000)?1000:(merchantCapacity>1500)?1500:merchantCapacity //capacitiy is 1000 but for .PT might be 1500
-    
-    
-
-    // console.log("reserveMerchants",reserveMerchants)
-    // console.log("time_construction_total",time_construction_total)
-    // console.log("averageFactor",averageFactor)
-    // console.log("merchantCapacity",merchantCapacity)
-
-
+    averageFactor=(Number.isNaN(averageFactor)==true)?1:(averageFactor<0)?0:(averageFactor>1)?1:averageFactor
+    merchantCapacity=(Number.isNaN(merchantCapacity)==true)?1000:(merchantCapacity<1000)?1000:(merchantCapacity>1500)?1500:merchantCapacity
 
     $("#div_container").remove()
     let {list_production, map_farm_usage} = await getDataProduction().catch(err=>alert(err))
@@ -545,21 +646,8 @@ async function balancingResources(){
     else
         map_resources_get_AM = new Map();
 
-
-    console.log("list_production",list_production)
-    console.log("map_farm_usage",map_farm_usage)
-    console.log("map_incoming",map_incoming)
-    console.log("map_resources_get_AM",map_resources_get_AM)
-
-    
-
-
     let start=new Date().getTime()
 
-
-
-
-    ///////////////////////////////////////////////get clusters///////////////////////////////////////
     let kmeans_coords=[]
     for(let i=0;i<list_production.length;i++){
         kmeans_coords.push([
@@ -567,32 +655,26 @@ async function balancingResources(){
                 parseInt(list_production[i].coord.split("|")[1])
             ])
     }
-    console.log("kmeans_coords")
-    console.log(kmeans_coords)
     let options={
         numberOfClusters:nrClusters,
         maxIterations:100
     }
     let clusters= getClusters(kmeans_coords,options)
-    console.log("clusters",clusters)
 
     let list_production_cluster=[]
     let list_production_home_cluster=[]
     let map_draw_on_map=new Map()
 
-    for(let i=0;i<clusters.length;i++){// for each cluster
+    for(let i=0;i<clusters.length;i++){
         let list_coords=clusters[i].data
         let list_prod=[],list_prod_home=[]
-        // console.log(list_coords)
-        for(let j=0;j<list_coords.length;j++){//for each village of a cluster
+        for(let j=0;j<list_coords.length;j++){
             let coord=list_coords[j].join("|")
-            for(let k=0;k<list_production.length;k++){//search in the main list 
+            for(let k=0;k<list_production.length;k++){
                 if(list_production[k].coord == coord){
                     list_prod.push(list_production[k])
                     list_prod_home.push(list_production_home[k])
-                    console.log(`label_cluster: ${i}`)
 
-                    //add incoming and then show on the map
                     let total_resources_get=0
                     if(map_incoming.has(coord)){
                         total_resources_get=map_incoming.get(coord).wood+map_incoming.get(coord).stone+map_incoming.get(coord).iron
@@ -612,11 +694,6 @@ async function balancingResources(){
         list_production_cluster.push(list_prod)
         list_production_home_cluster.push(list_prod_home)
     }
-    console.log("list_production_cluster",list_production_cluster)
-
-
-
-    /////////////////////////////////////////////calculate total nr of resources and global average////////////////////////////////////////
 
     let total_wood_home=0,total_stone_home=0,total_iron_home=0
     let avg_wood_total=0,avg_stone_total=0,avg_iron_total=0
@@ -628,7 +705,6 @@ async function balancingResources(){
             list_production[i].stone += map_incoming.get(coord).stone
             list_production[i].iron  += map_incoming.get(coord).iron
 
-            //in case minting a village might have huge cantity of resources underway
             list_production[i].wood = Math.min(list_production[i].wood , list_production[i].capacity)
             list_production[i].stone= Math.min(list_production[i].stone, list_production[i].capacity)
             list_production[i].iron = Math.min(list_production[i].iron , list_production[i].capacity)
@@ -643,9 +719,6 @@ async function balancingResources(){
         total_iron_home +=list_production[i].iron
     }
 
-    // //////////////////////////////////update list_production with all incoming resources ,get average for each resource/////////////////////////
-
-
     let list_launches, list_clusters_stats
     let total_wood_send_stats, total_stone_send_stats, total_iron_send_stats
     let total_wood_get_stats, total_stone_get_stats, total_iron_get_stats
@@ -653,13 +726,13 @@ async function balancingResources(){
 
     if(maxConstruction == false || averageFactor > 0.5){
         let launchesData = calculateLaunches(
-            list_production_cluster, 
+            list_production_cluster,
             list_production_home_cluster,
             map_resources_get_AM,
             clusters,
             averageFactor,
-            reserveMerchants, 
-            merchantCapacity 
+            reserveMerchants,
+            merchantCapacity
         )
         list_launches = launchesData.list_launches
         list_clusters_stats = launchesData.list_clusters_stats
@@ -674,13 +747,13 @@ async function balancingResources(){
         let map_resources_get_AM = map_resources_get_AM_data[0];
 
         let launchesData = calculateLaunches(
-            list_production_cluster, 
+            list_production_cluster,
             list_production_home_cluster,
             map_resources_get_AM,
             clusters,
             averageFactor,
-            reserveMerchants, 
-            merchantCapacity 
+            reserveMerchants,
+            merchantCapacity
         )
         list_launches = launchesData.list_launches
         list_clusters_stats = launchesData.list_clusters_stats
@@ -695,22 +768,21 @@ async function balancingResources(){
         let maxConstruction = 100;
         while(count < maxConstruction){
             map_resources_get_AM = map_resources_get_AM_data[count];
-            // console.log("iteration: " + count)
             launchesData = calculateLaunches(
-                list_production_cluster, 
+                list_production_cluster,
                 list_production_home_cluster,
                 map_resources_get_AM,
                 clusters,
                 averageFactor,
-                reserveMerchants, 
-                merchantCapacity 
+                reserveMerchants,
+                merchantCapacity
             )
             let stats = launchesData.list_clusters_stats;
             let notEnoughRes = false;
             for(let i=0;i<stats.length;i++){
-                if( stats[i].total_iron_get > stats[i].total_iron_send || 
-                    stats[i].total_stone_get > stats[i].total_stone_send || 
-                    stats[i].total_wood_get > stats[i].total_wood_send 
+                if( stats[i].total_iron_get > stats[i].total_iron_send ||
+                    stats[i].total_stone_get > stats[i].total_stone_send ||
+                    stats[i].total_wood_get > stats[i].total_wood_send
                 ){
                     notEnoughRes = true;
                     break;
@@ -725,7 +797,6 @@ async function balancingResources(){
                 constructionTimeCalculated = count
             }
 
-
             list_launches = launchesData.list_launches
             list_clusters_stats = launchesData.list_clusters_stats
             total_wood_send_stats = launchesData.total_wood_send_stats
@@ -737,20 +808,12 @@ async function balancingResources(){
             count++;
         }
 
-
     }
 
-    console.log("list_clusters_stats",list_clusters_stats)
-
-
-    // list_launches.sort((o1,o2)=>{
-    //     return (o1.total_send > o2.total_send)?-1:(o1.total_send < o2.total_send)?1:0
-    // })
     list_clusters_stats.sort((o1,o2)=>{
         return (o1.max_distance > o2.max_distance)?-1:(o1.max_distance < o2.max_distance)?1:0
     })
 
-    // how many merchants are sent on each village
     let map_nr_merchants=new Map()
     for(let i=0;i<list_launches.length;i++){
         let nr_merchants=list_launches[i].wood+list_launches[i].stone+list_launches[i].iron
@@ -765,18 +828,14 @@ async function balancingResources(){
 
         }
     }
-    console.log("map nr merchants",map_nr_merchants)
     for(let i=0;i<list_production.length;i++){
         let nr_merchants=0
         if(map_nr_merchants.get(list_production[i].coord))
             nr_merchants=map_nr_merchants.get(list_production[i].coord)
 
-        // console.log(`coord: ${list_production[i].coord},merchants calculated: ${nr_merchants} vs theory: ${list_production[i].merchants}`)
         list_production[i].merchantAvailable = list_production[i].merchants - nr_merchants
     }
 
-
-    /////////////////////////////////////////////////////////////some statistics///////////////////////////////////
     let obj_stats={}
     obj_stats.avg_wood=Math.round(avg_wood_total)
     obj_stats.avg_stone=Math.round(avg_stone_total)
@@ -794,7 +853,6 @@ async function balancingResources(){
     obj_stats.total_stone_home=Math.round(total_stone_home)
     obj_stats.total_iron_home=Math.round(total_iron_home)
 
-    ///////////////////////////////////////////////////////////end result of balancing//////////////////////////////
     for(let i=0;i<list_production.length;i++){
         for(let j=0;j<list_launches.length;j++){
             if(list_production[i].coord == list_launches[j].coord_destination){
@@ -818,14 +876,7 @@ async function balancingResources(){
         return (o1.result_total>o2.result_total)?1:(o1.result_total<o2.result_total)?-1:0
     })
 
-
     let map_launches_mass=new Map()
-
-
-
-
-
-
 
     for(let i=0;i<list_launches.length;i++){
         let target_id=list_launches[i].id_destination
@@ -835,7 +886,6 @@ async function balancingResources(){
         let ironKey=`resource[${origin_id}][iron]`
         let send_resources={}
 
-        //create a map with every launch
         if(map_launches_mass.has(target_id)){
             let obj_update=map_launches_mass.get(target_id)
             obj_update.send_resources[woodKey]=list_launches[i].wood
@@ -868,9 +918,6 @@ async function balancingResources(){
             })
         }
 
-
-
-
         if(map_draw_on_map.has(target_id)){
             let obj_update=map_draw_on_map.get(target_id)
             obj_update.total_resources_get+=list_launches[i].wood+list_launches[i].stone+list_launches[i].iron
@@ -881,13 +928,8 @@ async function balancingResources(){
             let obj_update=map_draw_on_map.get(origin_id)
             obj_update.total_resources_send+=list_launches[i].wood+list_launches[i].stone+list_launches[i].iron
 
-
             map_draw_on_map.set(origin_id,obj_update)
         }
-
-
-
-
 
     }
 
@@ -896,14 +938,7 @@ async function balancingResources(){
         return (o1.total_send > o2.total_send)?-1:(o1.total_send < o2.total_send)?1:0
     })
 
-    console.log("list_production",list_production)
-    console.log("list_launches",list_launches)
-    console.log("list_launches_mass",list_launches_mass)
-    console.log("map_draw_on_map",map_draw_on_map)
-
     let stop= new Date().getTime()
-    console.log("time process: "+(stop-start))
-    
 
     createMainInterface()
     $("#div_tables").show()
@@ -913,7 +948,6 @@ async function balancingResources(){
     }
 
     if (typeof (TWMap) != 'undefined') {
-        console.log("map page")
         document.getElementById("map_container").remove()
         TWMap.mapHandler.spawnSector=originalSpawnSector
 
@@ -923,23 +957,47 @@ async function balancingResources(){
             let randomColor=getRandomColor(opacity)
             random_color.push(randomColor)
         }
-        console.log(random_color)
 
         addInfoOnMap(map_draw_on_map,random_color)
         TWMap.init();
 
     }
 
+}
 
+function calculateCapacityAwareAverage(list, resKey, capacityFactor=0.95){
+    let total = 0
+    for(let i=0;i<list.length;i++){
+        total += list[i][resKey]
+    }
+    let count = list.length
+    if(count === 0) return 0
+
+    let avg = Math.floor(total / count)
+
+    for(let i=0;i<list.length;i++){
+        avg = Math.floor(total / count)
+        let cap = list[i].capacity * capacityFactor
+        if(cap < avg){
+            total -= (avg - cap)
+            count--
+            if(count <= 0){
+                count = 1
+                break
+            }
+        }
+    }
+    avg = Math.floor(total / count)
+    return avg
 }
 
 function calculateLaunches(
-    list_production_cluster, 
+    list_production_cluster,
     list_production_home_cluster,
-    map_resources_get_AM, 
-    clusters, 
-    averageFactor, 
-    reserveMerchants, 
+    map_resources_get_AM,
+    clusters,
+    averageFactor,
+    reserveMerchants,
     merchantCapacity)
     {
     let list_launches=[]
@@ -949,7 +1007,6 @@ function calculateLaunches(
     let total_wood_get_stats=0,total_stone_get_stats=0,total_iron_get_stats=0
 
     for(let i=0;i<list_production_cluster.length;i++){
-        console.log(`--------------cluster:${i}----------------`)
 
         let list_prod=list_production_cluster[i]
         let list_prod_home=list_production_home_cluster[i]
@@ -961,12 +1018,7 @@ function calculateLaunches(
         let list_res_send=[],list_res_get=[]
         let total_wood_cluster=0,total_stone_cluster=0,total_iron_cluster=0
 
-
         for(let j=0;j<list_prod.length;j++){
-
-            avg_wood+=list_prod[j].wood/list_prod.length
-            avg_stone+=list_prod[j].stone/list_prod.length
-            avg_iron+=list_prod[j].iron/list_prod.length
 
             total_wood_cluster+=list_prod[j].wood
             total_stone_cluster+=list_prod[j].stone
@@ -974,17 +1026,14 @@ function calculateLaunches(
 
         }
 
+        avg_wood  = calculateCapacityAwareAverage(list_prod,"wood")
+        avg_stone = calculateCapacityAwareAverage(list_prod,"stone")
+        avg_iron  = calculateCapacityAwareAverage(list_prod,"iron")
 
-        avg_wood_factor   = avg_wood  * averageFactor//reduce avg with a factor [0-1]
+        avg_wood_factor   = avg_wood  * averageFactor
         avg_stone_factor  = avg_stone * averageFactor
         avg_iron_factor   = avg_iron  * averageFactor
 
-
-        // console.log("list_prod_home",list_prod_home)
-        // console.log("list_prod",list_prod)
-
-
-        /////////////////////////////////////calculates resources send and get for each village//////////////////////////////////////////////////
         for(let j=0;j<list_prod.length;j++){
             let coord=list_prod[j].coord
             let name=list_prod[j].name
@@ -999,7 +1048,6 @@ function calculateLaunches(
             let avg_stone_res = avg_stone_factor
             let avg_iron_res = avg_iron_factor
 
-            //here are added resources needed for AM construction
             if(map_resources_get_AM.has(list_prod[j].coord)){
                 let obj_res_AM = map_resources_get_AM.get(list_prod[j].coord)
 
@@ -1009,48 +1057,33 @@ function calculateLaunches(
                 list_prod[j].time_finished=obj_res_AM.time_finished
             }
             else{
-                list_prod[j].time_finished=0//added later to see for how many hours do j have resources at home
+                list_prod[j].time_finished=0
             }
 
             let diff_wood =list_prod[j].wood - Math.round(avg_wood_res)
             let diff_stone =list_prod[j].stone - Math.round(avg_stone_res)
             let diff_iron =list_prod[j].iron - Math.round(avg_iron_res)
 
-            // console.log(`aici ba prod:${list_prod[j].iron}, avg: ${Math.round(avg_iron_res)}`)
-
-            //in case diff>0 check if there are available res at home
             diff_wood=(diff_wood < 0)?diff_wood:(list_prod_home[j].wood - diff_wood > 0)?diff_wood: (list_prod_home[j].wood)
             diff_stone=(diff_stone < 0)?diff_stone:(list_prod_home[j].stone - diff_stone > 0)?diff_stone: (list_prod_home[j].stone)
             diff_iron=(diff_iron < 0)?diff_iron:(list_prod_home[j].iron - diff_iron > 0)?diff_iron: (list_prod_home[j].iron)
-
-            // console.log(`coord ${coord} merch:${merchants} cap:${capacity}, wood:${diff_wood}, stone:${diff_stone}, iron:${diff_iron}`)
 
             let total_res_available=0
             total_res_available=(diff_wood>0)?  total_res_available+diff_wood :  total_res_available
             total_res_available=(diff_stone>0)? total_res_available+diff_stone : total_res_available
             total_res_available=(diff_iron>0)?  total_res_available+diff_iron :  total_res_available
 
-            // console.log("total_res_available",total_res_available)
-            let norm_factor=(capacity_travel <= total_res_available) ? capacity_travel/total_res_available:1//normalize to the number of merchant available
+            let norm_factor=(capacity_travel <= total_res_available) ? capacity_travel/total_res_available:1
             let send_wood=0,send_stone=0,send_iron=0
             let get_wood=0,get_stone=0,get_iron=0
-            // console.log("norm_factor",norm_factor)
 
             send_wood =(diff_wood>0) ?  parseInt(diff_wood * norm_factor):send_wood
             send_stone=(diff_stone>0) ?  parseInt(diff_stone* norm_factor):send_stone
             send_iron =(diff_iron>0) ?  parseInt(diff_iron * norm_factor):send_iron
-            // console.log(`send---->wood:${send_wood}, stone:${send_stone}, iron:${send_iron}`)
-            
-            //firstly check if needs res(diff_res<0) then check if after balance wh will overflow and if it overflows send only res to fill 95% of wh
+
             get_wood =(diff_wood>0) ?get_wood :(list_prod[j].wood +Math.abs(diff_wood) < capacity)? Math.abs(diff_wood) : capacity-list_prod[j].wood
             get_stone=(diff_stone>0)?get_stone:(list_prod[j].stone+Math.abs(diff_stone)< capacity)? Math.abs(diff_stone): capacity-list_prod[j].stone
             get_iron =(diff_iron>0) ?get_iron :(list_prod[j].iron +Math.abs(diff_iron) < capacity)? Math.abs(diff_iron) : capacity-list_prod[j].iron
-            // console.log(`get---->wood:${get_wood}, stone:${get_stone}, iron:${get_iron}`)
-            // console.log("------------------------------------------------------")
-            
-
-
-
 
             total_wood_send+=send_wood
             total_stone_send+=send_stone
@@ -1076,137 +1109,122 @@ function calculateLaunches(
             obj_send.iron =(send_iron  > 0)?send_iron :0
             if(obj_send.wood > 0 || obj_send.stone > 0 || obj_send.iron > 0)
                 list_res_send.push(obj_send)
-            
+
             obj_get.wood =(get_wood  > 0)?parseInt(get_wood) :0
             obj_get.stone=(get_stone > 0)?parseInt(get_stone):0
             obj_get.iron =(get_iron  > 0)?parseInt(get_iron) :0
             if(obj_get.wood > 0 || obj_get.stone > 0 || obj_get.iron > 0)
                 list_res_get.push(obj_get)
 
-
-
-
         }
 
-        // console.log("end results")
-        // console.log("avg wood: " + avg_wood)
-        // console.log("avg stone: "+ avg_stone)
-        // console.log("avg iron: " + avg_iron)
-        // console.log(`send---> wood:${total_wood_send}, stone:${total_stone_send}, iron:${total_iron_send}`)
-        // console.log(`get----> wood:${total_wood_get}, stone:${total_stone_get}, iron:${total_iron_get}`)
-
-        /////////////////////////////////////////normalization resources,if send resources< get resources =>normalize///////////////////////////
         let norm_wood=(total_wood_get>total_wood_send)?(total_wood_send/total_wood_get):1
         let norm_stone=(total_stone_get>total_stone_send)?(total_stone_send/total_stone_get):1
         let norm_iron=(total_iron_get>total_iron_send)?(total_iron_send/total_iron_get):1
 
-        //////////////////////////////////////////normalize each res///////////////////////////////////////////////////////////////////
         for(let j=0;j<list_res_get.length;j++){
             list_res_get[j].wood =parseInt(list_res_get[j].wood *norm_wood)
             list_res_get[j].stone=parseInt(list_res_get[j].stone*norm_stone)
             list_res_get[j].iron =parseInt(list_res_get[j].iron *norm_iron)
         }
 
-        // console.log("list_res_send",list_res_send)
-        // console.log("list_res_get",list_res_get)
-
-
-
-
         let list_maxDistance=[]
-        // ////////////////////////////////////////////////////calculates launches///////////////////////////////////////
-        for(let j=0;j<list_res_get.length;j++){
-            let coord_destination=list_res_get[j].coord
-            let id_destination=list_res_get[j].id
-            let name_destination=list_res_get[j].name
-            
-            //////////////////////////////////////////////////////calculate distance/////////////////////////////////////
-            let max_distance=0;
-            for(let k=0;k<list_res_send.length;k++){
-                let distance=calcDistance(list_res_get[j].coord,list_res_send[k].coord)
-                list_res_send[k].distance=distance
-                max_distance=(max_distance > distance) ? max_distance :distance
-            }
-            list_res_send.sort((o1,o2)=>{
-                return (o1.distance>o2.distance)?1:(o1.distance<o2.distance)?-1:0
-            })
+        let minim_resources= (merchantCapacity==1000)?700:1200
 
-            let obj_launch={
-                wood:0,
-                stone:0,
-                iron:0
-            }
+        const processPair = (g, s, distance) => {
+            let send_wood =(s.wood  > 0) ? Math.min(g.wood , s.wood)  : 0
+            let send_stone=(s.stone > 0) ? Math.min(g.stone, s.stone) : 0
+            let send_iron =(s.iron  > 0) ? Math.min(g.iron , s.iron)  : 0
 
-            for(let k=0;k<list_res_send.length;k++){
-                let coord_origin=list_res_send[k].coord
-                let id_origin=list_res_send[k].id
-                let name_origin=list_res_send[k].name
+            g.wood  -= send_wood
+            g.stone -= send_stone
+            g.iron  -= send_iron
 
-                // if resources send >0 then return minimum between send and ged othervise return current value
-                let send_wood=(list_res_send[k].wood   > 0) ? Math.min(list_res_get[j].wood  , list_res_send[k].wood)  : 0
-                let send_stone=(list_res_send[k].stone > 0) ? Math.min(list_res_get[j].stone , list_res_send[k].stone)  : 0
-                let send_iron=(list_res_send[k].iron   > 0) ? Math.min(list_res_get[j].iron  , list_res_send[k].iron)  : 0
+            s.wood  -= send_wood
+            s.stone -= send_stone
+            s.iron  -= send_iron
 
+            let total_send=send_wood+send_stone+send_iron
 
-
-                obj_launch.wood +=send_wood
-                obj_launch.stone +=send_stone
-                obj_launch.iron +=send_iron
-
-                list_res_get[j].wood -= send_wood 
-                list_res_get[j].stone -= send_stone 
-                list_res_get[j].iron -= send_iron
-
-                list_res_send[k].wood -= send_wood 
-                list_res_send[k].stone -= send_stone 
-                list_res_send[k].iron -= send_iron
-
-
-                let total_send=send_wood+send_stone+send_iron
-
-                //stupid bug, if a resource has xxx699 must get rid of 699 
-                let restDivision=total_send%merchantCapacity
-                let minim_resources= (merchantCapacity==1000)?700:1200// special case for PT 
-                if(restDivision < minim_resources){
-                    if(send_wood>restDivision){
-                        send_wood-=restDivision
-                        total_send-=restDivision
-                    }
-                    else if(send_stone>restDivision){
-                        send_stone-=restDivision
-                        total_send-=restDivision
-                    }
-                    else if(send_iron>restDivision){
-                        send_iron-=restDivision
-                        total_send-=restDivision
-                    }                   
+            let restDivision=total_send%merchantCapacity
+            if(restDivision < minim_resources){
+                if(send_wood>restDivision){
+                    send_wood-=restDivision
+                    total_send-=restDivision
                 }
+                else if(send_stone>restDivision){
+                    send_stone-=restDivision
+                    total_send-=restDivision
+                }
+                else if(send_iron>restDivision){
+                    send_iron-=restDivision
+                    total_send-=restDivision
+                }
+            }
 
+            list_maxDistance.push(distance)
 
-                list_maxDistance.push(list_res_send[k].distance)
-
-                if(total_send>=minim_resources)
+            if(total_send>=minim_resources){
                 list_launches.push({
                     total_send:total_send,
                     wood:send_wood,
                     stone:send_stone,
                     iron:send_iron,
-                    coord_origin:coord_origin,
-                    name_origin:name_origin,
-                    id_destination:id_destination,
-                    id_origin:id_origin,
-                    coord_destination:coord_destination,
-                    name_destination:name_destination,
-                    distance:list_res_send[k].distance
+                    coord_origin:s.coord,
+                    name_origin:s.name,
+                    id_destination:g.id,
+                    id_origin:s.id,
+                    coord_destination:g.coord,
+                    name_destination:g.name,
+                    distance:distance
                 })
+            }
+        }
 
-                let total_get=list_res_get[j].wood+list_res_get[j].stone+list_res_get[j].iron
-                if(total_get < minim_resources){
-                    // console.log("done sending here")
+        const remainingTotal = (o) => o.wood + o.stone + o.iron
+
+        let allPairs=[]
+        for(let j=0;j<list_res_get.length;j++){
+            for(let k=0;k<list_res_send.length;k++){
+                allPairs.push({
+                    j:j,
+                    k:k,
+                    distance:calcDistance(list_res_get[j].coord,list_res_send[k].coord)
+                })
+            }
+        }
+        allPairs.sort((o1,o2)=>{
+            return (o1.distance>o2.distance)?1:(o1.distance<o2.distance)?-1:0
+        })
+        for(let p=0;p<allPairs.length;p++){
+            let g=list_res_get[allPairs[p].j]
+            let s=list_res_send[allPairs[p].k]
+            if(remainingTotal(g)<=0 || remainingTotal(s)<=0) continue
+            processPair(g,s,allPairs[p].distance)
+        }
+
+        for(let j=0;j<list_res_get.length;j++){
+            let g=list_res_get[j]
+            if(remainingTotal(g)<=0) continue
+
+            for(let k=0;k<list_res_send.length;k++){
+                list_res_send[k].distance=calcDistance(g.coord,list_res_send[k].coord)
+            }
+            list_res_send.sort((o1,o2)=>{
+                return (o1.distance>o2.distance)?1:(o1.distance<o2.distance)?-1:0
+            })
+
+            for(let k=0;k<list_res_send.length;k++){
+                let s=list_res_send[k]
+                if(remainingTotal(s)<=0) continue
+                processPair(g,s,s.distance)
+
+                if(remainingTotal(g) < minim_resources){
                     break;
                 }
             }
         }
+
         total_wood_send_stats +=total_wood_send
         total_stone_send_stats+=total_stone_send
         total_iron_send_stats +=total_iron_send
@@ -1215,15 +1233,12 @@ function calculateLaunches(
         total_stone_get_stats+=total_stone_get
         total_iron_get_stats +=total_iron_get
 
-
-        //calc distance max
         let max_distance=0
         for(let j=0;j<list_maxDistance.length;j++){
             if(max_distance < list_maxDistance[j])
                 max_distance = list_maxDistance[j]
         }
 
-        //add stats for cluster
         list_clusters_stats.push({
             nr_coords:clusters[i].data.length,
             center: parseInt(clusters[i].mean[0])+"|"+parseInt(clusters[i].mean[1]),
@@ -1262,27 +1277,27 @@ function calculateLaunches(
     }
 }
 
-
-///////////////////////////////////////////////////////////////////get all resources from page combined production//////////////////////////////////////////////////
-
+function buildUrl(path){
+    let sitterParam = (game_data.player.sitter > 0) ? `t=${game_data.player.id}&` : ""
+    return game_data.link_base_pure.replace("game.php?", `game.php?${sitterParam}`) + path
+}
 
 function getDataProduction(){
 
     return new Promise((resolve,reject)=>{
-        let link_combined_production=game_data.link_base_pure+"overview_villages&mode=prod"
+        let link_combined_production=buildUrl("overview_villages&mode=prod")
         let dataPage = httpGet(link_combined_production)
         const parser = new DOMParser();
         const htmlDoc = parser.parseFromString(dataPage, 'text/html');
-        //get pages for all incoming
         let list_pages=[]
-    
+
         if($(htmlDoc).find(".paged-nav-item").parent().find("select").length>0){
             Array.from($(htmlDoc).find(".paged-nav-item").parent().find("select").find("option")).forEach(function(item){
                 list_pages.push(item.value)
             })
             list_pages.pop();
         }
-        else if(htmlDoc.getElementsByClassName("paged-nav-item").length>0){//all pages from the current folder
+        else if(htmlDoc.getElementsByClassName("paged-nav-item").length>0){
             let nr=0;
             Array.from(htmlDoc.getElementsByClassName("paged-nav-item")).forEach(function(item){
                 let current=item.href;
@@ -1295,11 +1310,9 @@ function getDataProduction(){
             list_pages.push(link_combined_production);
         }
         list_pages=list_pages.reverse();
-    
-    
-        // go to every page and get incoming
+
         let list_production=[]
-        let map_farm_usage=new Map() 
+        let map_farm_usage=new Map()
         function ajaxRequest (urls) {
             let current_url
             if(urls.length>0){
@@ -1308,7 +1321,6 @@ function getDataProduction(){
             else{
                 current_url="stop"
             }
-            console.log(current_url)
             let start_ajax=new Date().getTime()
             if (urls.length >= 0 && current_url!="stop") {
                 $.ajax({
@@ -1324,7 +1336,7 @@ function getDataProduction(){
                                 let name=table_production[i].getElementsByClassName("quickedit-vn")[0].innerText
                                 let coord=table_production[i].getElementsByClassName("quickedit-vn")[0].innerText.match(/[0-9]{3}\|[0-9]{3}/)[0]
                                 let id=table_production[i].getElementsByClassName("quickedit-vn")[0].getAttribute("data-id")
-                                
+
                                 let wood=parseInt(table_production[i].getElementsByClassName("wood")[0].innerText.replace(".",""))
                                 let stone=parseInt(table_production[i].getElementsByClassName("stone")[0].innerText.replace(".",""))
                                 let iron=parseInt(table_production[i].getElementsByClassName("iron")[0].innerText.replace(".",""))
@@ -1335,7 +1347,7 @@ function getDataProduction(){
                                 let farm_current_pop=parseInt(table_production[i].children[6].innerText.split("/")[0])
                                 let farm_total_pop=parseInt(table_production[i].children[6].innerText.split("/")[1])
                                 let farm_usage=farm_current_pop/farm_total_pop
-                                
+
                                 let obj={
                                     coord:coord,
                                     id:id,
@@ -1347,10 +1359,10 @@ function getDataProduction(){
                                     merchants_total:merchants_total,
                                     capacity:capacity,
                                     points:points,
-    
+
                                 }
                                 list_production.push(obj)
-    
+
                                 map_farm_usage.set(coord,farm_usage)
                             }
                         }
@@ -1372,8 +1384,7 @@ function getDataProduction(){
                                 let farm_current_pop=parseInt(table_production[i].getElementsByClassName("population")[0].parentElement.innerText.split("/")[0])
                                 let farm_total_pop=parseInt(table_production[i].getElementsByClassName("population")[0].parentElement.innerText.split("/")[1])
                                 let farm_usage=farm_current_pop/farm_total_pop
-                           
-                           
+
                                 let obj={
                                     coord:coord,
                                     id:id,
@@ -1385,20 +1396,17 @@ function getDataProduction(){
                                     merchants_total:merchants_total,
                                     capacity:capacity,
                                     points:points,
-    
+
                                 }
                                 list_production.push(obj)
-    
+
                                 map_farm_usage.set(coord,farm_usage)
                             }
 
                         }
-                        
-
 
                         let stop_ajax=new Date().getTime();
                         let diff=stop_ajax-start_ajax
-                        console.log("wait: "+diff)
                         window.setTimeout(function(){
                             ajaxRequest (list_pages)
                             UI.SuccessMessage("get production page: "+urls.length)
@@ -1408,35 +1416,30 @@ function getDataProduction(){
                         reject(err)
                     }
                 })
-               
+
             }
             else
             {
-                // console.log("list_production: herererre",list_production)
                 UI.SuccessMessage("done")
                 resolve({
                     list_production:list_production,
                     map_farm_usage:map_farm_usage
                 })
-    
-                
+
             }
         }
         ajaxRequest(list_pages);
-    
+
     })
 }
 
-///////////////////////////////////////////////////////////////////get all resources from page incoming transport//////////////////////////////////////////////////
-
 function getDataIncoming(){
     return new Promise((resolve,reject)=>{
-        let link_combined_production=game_data.link_base_pure+"overview_villages&mode=trader&type=inc"
+        let link_combined_production=buildUrl("overview_villages&mode=trader&type=inc")
         let dataPage = httpGet(link_combined_production)
         const parser = new DOMParser();
         const htmlDoc = parser.parseFromString(dataPage, 'text/html');
 
-        //get pages for all incoming
         let list_pages=[]
 
         if($(htmlDoc).find(".paged-nav-item").parent().find("select").length>0){
@@ -1445,7 +1448,7 @@ function getDataIncoming(){
             })
             list_pages.pop();
         }
-        else if(htmlDoc.getElementsByClassName("paged-nav-item").length>0){//all pages from the current folder
+        else if(htmlDoc.getElementsByClassName("paged-nav-item").length>0){
             let nr=0;
             Array.from(htmlDoc.getElementsByClassName("paged-nav-item")).forEach(function(item){
                 let current=item.href;
@@ -1459,8 +1462,6 @@ function getDataIncoming(){
         }
         list_pages=list_pages.reverse();
 
-
-        // go to every page and get incoming
         let  map_incoming=new Map()
         function ajaxRequest (urls) {
             let current_url
@@ -1470,7 +1471,6 @@ function getDataIncoming(){
             else{
                 current_url="stop"
             }
-            console.log(current_url)
             let start_ajax=new Date().getTime()
             if (urls.length >= 0 && current_url!="stop") {
                 $.ajax({
@@ -1497,7 +1497,6 @@ function getDataIncoming(){
                             stone=(Number.isNaN(stone) ==true)?0:stone
                             iron=(Number.isNaN(iron) ==true)?0:iron
 
-
                             let obj={
                                 wood:wood,
                                 stone:stone,
@@ -1516,7 +1515,6 @@ function getDataIncoming(){
                         }
                         let stop_ajax=new Date().getTime();
                         let diff=stop_ajax-start_ajax
-                        console.log("wait: "+diff)
                         window.setTimeout(function(){
                             ajaxRequest (list_pages)
                             UI.SuccessMessage("get incoming page: "+urls.length)
@@ -1526,15 +1524,13 @@ function getDataIncoming(){
                         reject(err)
                     }
                 })
-            
+
             }
             else
             {
                 UI.SuccessMessage("done")
-                // console.log(map_incoming)
                 resolve(map_incoming)
 
-                
             }
         }
         ajaxRequest(list_pages);
@@ -1542,15 +1538,12 @@ function getDataIncoming(){
 
 }
 
-
-
 function httpGet(theUrl){
     var xmlHttp = new XMLHttpRequest();
-    xmlHttp.open( "GET", theUrl, false ); // false for synchronous request
+    xmlHttp.open( "GET", theUrl, false );
     xmlHttp.send( null );
     return xmlHttp.responseText;
 }
-
 
 function calcDistance(coord1,coord2){
     let x1=parseInt(coord1.split("|")[0])
@@ -1561,15 +1554,8 @@ function calcDistance(coord1,coord2){
     return Math.sqrt( (x1-x2)*(x1-x2) +  (y1-y2)*(y1-y2) );
 }
 
-///////////////////////////////////////////////////////////////////create interface +tables//////////////////////////////////////////////////
-
 async function createTable(list_launches,obj_stats,list_production,list_clusters_stats){
 
-
-
-
-    
-    ////////////////////////////////////////////////////////////////////table send resources/////////////////////////////////////////////////////////////////////
     let html_prod_table=`
         <table  class="scriptTableAlternate">
         <tr>
@@ -1591,10 +1577,9 @@ async function createTable(list_launches,obj_stats,list_production,list_clusters
         let origin_id=list_launches[i].id_origin
         let data=JSON.stringify(list_launches[i].send_resources)
 
-        
         html_prod_table+=`
             <tr id="delete_row" >
-                <td>${i+1}</td>          
+                <td>${i+1}</td>
                 <td><a href="${game_data.link_base_pure}info_village&id=${list_launches[i].target_id}"><font color="${textColor}">${list_launches[i].name_destination}</font></a></td>
                 <td>${list_launches[i].distance.toFixed(1)}</td>
                 <td>${formatNumber(list_launches[i].total_send)}</td>
@@ -1602,7 +1587,7 @@ async function createTable(list_launches,obj_stats,list_production,list_clusters
                 <td class="hide_mobile">${formatNumber(stone)}</td>
                 <td class="hide_mobile">${formatNumber(iron)}</td>
                 <td><input class="btn evt-confirm-btn btn-confirm-yes btn_send" target_id="${target_id}" data='${data}'  type="button" value="send"></td>
-   
+
             </tr>`
     }
 
@@ -1611,27 +1596,22 @@ async function createTable(list_launches,obj_stats,list_production,list_clusters
 
     document.getElementById("table_view").innerHTML=html_prod_table
 
-    //hide wood, stone, iron for mobile app because there isn't enough space
     if(game_data.device !="desktop")
         $(".hide_mobile").hide()
 
-    ///////////////////////////////////////////////////////////////////add event for each button send//////////////////////////////////////////////
     $(".btn_send").on("click",async(event)=>{
 
         if($(event.target).is(":disabled")==false){
             let target_id=$(event.target).attr("target_id")
             let data=JSON.parse($(event.target).attr("data"))
-            console.log(target_id,data)
-            
-    
+
             $(".btn_send").attr("disabled", true)
-    
+
             let start=new Date().getTime()
             sendResources(target_id,data)
             let stop=new Date().getTime()
             let diff_time=stop-start
-            // console.log("ajax time: "+(diff_time))
-    
+
             window.setTimeout(()=>{
                 $(event.target).closest("#delete_row").remove()
                 $(".btn_send").attr("disabled", false)
@@ -1640,9 +1620,6 @@ async function createTable(list_launches,obj_stats,list_production,list_clusters
         }
 
     })
-
-    
-    ////////////////////////////////////////////////////////////////////table statistics/////////////////////////////////////////////////////////////////////
 
     let html_stats_table=`
         <table id="table_stats" class="scriptTable">
@@ -1658,7 +1635,7 @@ async function createTable(list_launches,obj_stats,list_production,list_clusters
             <td>${formatNumber(obj_stats.total_wood_home)}</td>
             <td>${formatNumber(obj_stats.total_stone_home)}</td>
             <td>${formatNumber(obj_stats.total_iron_home)}</td>
-       
+
         </tr>
         <tr>
             <td colspan="2">average</td>
@@ -1683,20 +1660,13 @@ async function createTable(list_launches,obj_stats,list_production,list_clusters
     `
     document.getElementById("table_stats").innerHTML=html_stats_table
 
-
-    //////////////////////////////////////////////add event for results button +create table for end of balancing//////////////////////////////////////////////
     $("#btn_result").on("click",()=>{
         createTableResults(list_production)
     })
     $("#btn_cluster").on("click",()=>{
         createTableClusters(list_clusters_stats)
     })
-   
-    
 
-
-
-    ///////////////////////////////////////////////////////////add event for sorting/////////////////////////////////////////////////
     document.getElementById("sort_distance").addEventListener("click",()=>{
         list_launches.sort((o1,o2)=>{
             return (parseFloat(o1.distance) > parseFloat(o2.distance))?1:(parseFloat(o1.distance) < parseFloat(o2.distance))?-1:0
@@ -1738,35 +1708,24 @@ async function createTable(list_launches,obj_stats,list_production,list_clusters
 
     })
 
-
-
-
-    //////////////////////////////////////////////add event for key enter//////////////////////////////////////////////////
     if(document.getElementsByClassName("btn_send").length>0){
         document.getElementsByClassName("btn_send")[0].focus()
     }
 
     window.onkeydown = function(e) {
-        // console.log(e.which)
         if(e.which == 13 ){
 
             if(document.getElementsByClassName("btn_send").length>0){
                 document.getElementsByClassName("btn_send")[0].click()
             }
         }
-        // e.preventDefault()
     }
-
 
 }
 
 function formatNumber(number){
     return new Intl.NumberFormat().format(number)
 }
-
-
-
-///////////////////////////////////////////////////////////////////create table for results////////////////////////////
 
 function createTableResults(list_production){
     let html_end_result=`
@@ -1800,17 +1759,13 @@ function createTableResults(list_production){
             <center style="margin:10px"><img src="https://dsen.innogamescdn.com/asset/04d88c84/graphic/buildings/storage.png"/></center>
             </a>
         </td>
-   
+
     </tr>`
 
-
-   
     for(let i=0;i<list_production.length;i++){
 
-
-
-        let greenColor="#013e27",greenColorEven="#026440"//green
-        let redColor="#5f0000",redColorEven="#9a0000"//red
+        let greenColor="#013e27",greenColorEven="#026440"
+        let redColor="#5f0000",redColorEven="#9a0000"
 
         if(i%2!=0){
             header_status_wood =(parseInt(list_production[i].result_wood) >=0)?greenColor:redColor
@@ -1840,7 +1795,6 @@ function createTableResults(list_production){
         </tr>
         `
     }
-        
 
     html_end_result+=`
     </table>
@@ -1851,7 +1805,6 @@ function createTableResults(list_production){
         list_production.sort((o1,o2)=>{
             return (o1.points>o2.points)?1:(o1.points<o2.points)?-1:0
         })
-        console.log("order by points")
         $(".popup_box_close").click()
         createTableResults(list_production)
 
@@ -1860,7 +1813,6 @@ function createTableResults(list_production){
         list_production.sort((o1,o2)=>{
             return (o1.merchantAvailable>o2.merchantAvailable)?1:(o1.merchantAvailable<o2.merchantAvailable)?-1:0
         })
-        console.log("order by merchants")
         $(".popup_box_close").click()
         createTableResults(list_production)
 
@@ -1869,8 +1821,6 @@ function createTableResults(list_production){
         list_production.sort((o1,o2)=>{
             return (o1.time_finished>o2.time_finished)?-1:(o1.time_finished<o2.time_finished)?1:0
         })
-        console.log("order by construction time")
-        console.log(list_production)
         $(".popup_box_close").click()
         createTableResults(list_production)
 
@@ -1880,7 +1830,6 @@ function createTableResults(list_production){
             return (o1.result_total>o2.result_total)?1:(o1.result_total<o2.result_total)?-1:0
 
         })
-        console.log("order by deficit/surplus")
         $(".popup_box_close").click()
         createTableResults(list_production)
 
@@ -1890,14 +1839,11 @@ function createTableResults(list_production){
             return (o1.capacity>o2.capacity)?1:(o1.capacity<o2.capacity)?-1:0
 
         })
-        console.log("order by warehouse capacity")
         $(".popup_box_close").click()
         createTableResults(list_production)
 
     })
 }
-
-///////////////////////////////////////////////////////////////////create table for clusters////////////////////////////
 
 function createTableClusters(list_clusters_stats){
     let html_end_result=`
@@ -1908,17 +1854,13 @@ function createTableClusters(list_clusters_stats){
         <td >coords/\ncluster</td>
         <td >center of cluster</td>
         <td style="width:50%">resources</td>
-        <td >max distance</td>   
+        <td >max distance</td>
     </tr>`
 
-
-   
     for(let i=0;i<list_clusters_stats.length;i++){
 
         let gray="#202825",grayEven="#313e39"
         let header_status_wh = (i%2==0)?gray:grayEven
-
- 
 
         html_end_result+=`
         <tr >
@@ -1963,7 +1905,6 @@ function createTableClusters(list_clusters_stats){
         </tr>
         `
     }
-        
 
     html_end_result+=`
     </table>
@@ -1972,52 +1913,34 @@ function createTableClusters(list_clusters_stats){
     Dialog.show("content",html_end_result)
 }
 
-
-
-
-/////////////////////////////////////////////////////////////////function for sending resources//////////////////////////////////////////////////
-
-
-
 function sendResources(target_id,data) {
     let options={
         "village":target_id,
         "ajaxaction" : "call",
-        "h" : window.csrf_token,     
+        "h" : window.csrf_token,
     }
 
     TribalWars.post("market",options, data, function(response) {
-        console.log(response)
         UI.SuccessMessage(response.success,1000)
     }, function(error){
-        console.log(error)
     });
 }
-
-
-/////////////////////////////////////////////////////////////////function for getting resources for AM buildings//////////////////////////////////////////////////
-
 
 async function getResourcesForAM(map_farm_usage){
     let {map_construction_templates, map_coord_templates, map_priortize_farm} = await getTemplates().catch(e=>alert(e))
     let map_buildings_data = await getDataBuildings().catch(e=>alert(e))
 
     let map_constants_buildings = getConstantsTwBuildings()
-    console.log("map_construction_templates",map_construction_templates)
-    console.log("map_coord_templates",map_coord_templates)
-    console.log("map_buildings_data",map_buildings_data)
-    console.log("map_constants_buildings",map_constants_buildings)
 
     let time_construction_total = 100
     let list_map_resources_get_AM = []
 
     return new Promise((resolve,reject)=>{
-    
+
         for(let current_time_construction=1;current_time_construction <= time_construction_total;current_time_construction++){
             let map_resources_get_AM=new Map()
             let map_buildings = new Map(JSON.parse(JSON.stringify(Array.from(map_buildings_data.entries()))))
 
-            //add construction time for each building
             Array.from(map_buildings.keys()).forEach(key=>{
                 if(key.includes("_time_queued")){
                     map_resources_get_AM.set(key.replace("_time_queued",""),{
@@ -2028,32 +1951,27 @@ async function getResourcesForAM(map_farm_usage){
                     })
                 }
             })
-    
-            Array.from(map_coord_templates.keys()).forEach(key=>{//for every coord which have a AM construction template
+
+            Array.from(map_coord_templates.keys()).forEach(key=>{
                 let coord=key
-                let count_time_construction=map_buildings.get(coord+"_time_queued")//if a village has already queued building then get time when last building is finished
-                let template_name=map_coord_templates.get(coord)//get name template for the current village and then get the whole template tree from AM
+                let count_time_construction=map_buildings.get(coord+"_time_queued")
+                let template_name=map_coord_templates.get(coord)
                 let list_template=map_construction_templates.get(template_name)
                 let farmCapacity = map_priortize_farm.get(template_name) / 100
 
-
-                // console.log("template_name",template_name)
-                // console.log(list_template)
-        
-                //special case if a village doesn't have farm to max lv then check if farm is >99% used and then request to build farm 1 lv
                 if(map_buildings.get(coord+"_farm")<30 && map_farm_usage.get(coord) >= farmCapacity){
                     let lv_building_HQ=map_buildings.get(coord+"_main")
-                    let lv_building_current=map_buildings.get(coord+"_farm")//curent building from building page
+                    let lv_building_current=map_buildings.get(coord+"_farm")
                     let obj_constants_buildings=map_constants_buildings.get("farm")
-    
-                    lv_building_current++;//increase farm level
+
+                    lv_building_current++;
                     let list_info_construction=calculateTimeAndResConstruction(lv_building_HQ, lv_building_current, obj_constants_buildings)
                     let time_construction=list_info_construction[0]
                     let total_wood=list_info_construction[1]
                     let total_stone=list_info_construction[2]
                     let total_iron=list_info_construction[3]
                     count_time_construction+=time_construction
-    
+
                     map_resources_get_AM.set(coord,{
                         total_wood:total_wood,
                         total_stone:total_stone,
@@ -2061,37 +1979,29 @@ async function getResourcesForAM(map_farm_usage){
                         time_finished:count_time_construction/3600
                     })
                 }
-    
-    
-    
-                for(let i=0;i<list_template.length;i++){//for every building from AM template
+
+                for(let i=0;i<list_template.length;i++){
                     let name_building=list_template[i].name
-                    let key_building=coord+"_"+name_building//the key for getting current building from building page is 'coord_name(building)'
-        
-                    let lv_building_AM=list_template[i].level_absolute//level building from AM template
-                    let lv_building_current=map_buildings.get(key_building)//curent building from building page
-        
-                    
-                    if(lv_building_AM>lv_building_current){//means current building must be constructed
-                        let nr_levels=lv_building_AM-lv_building_current //lv building from AM can have 2-3 level above the current lv from building page
-                      
+                    let key_building=coord+"_"+name_building
+
+                    let lv_building_AM=list_template[i].level_absolute
+                    let lv_building_current=map_buildings.get(key_building)
+
+                    if(lv_building_AM>lv_building_current){
+                        let nr_levels=lv_building_AM-lv_building_current
+
                         for(let j=0;j<nr_levels;j++){
-                          
-                            //calculate time and resources needed for this lv
-                            lv_building_current++//need to construct this building with 1 lv
+
+                            lv_building_current++
                             let lv_building_HQ=map_buildings.get(coord+"_main")
                             let obj_constants_buildings=map_constants_buildings.get(name_building)
-                            // console.log(`coord:${coord}, name_building: ${name_building} lv_building_current: ${lv_building_current}`)
                             let list_info_construction=calculateTimeAndResConstruction(lv_building_HQ, lv_building_current, obj_constants_buildings)
                             let time_construction=list_info_construction[0]
                             let total_wood=list_info_construction[1]
                             let total_stone=list_info_construction[2]
-                            let total_iron=list_info_construction[3]                        
-        
-    
-    
+                            let total_iron=list_info_construction[3]
+
                             count_time_construction+=time_construction
-                            //update map with res needed for this lv building
                             if(map_resources_get_AM.has(coord)){
                                 let obj_update = map_resources_get_AM.get(coord)
                                 obj_update.total_wood += total_wood
@@ -2099,7 +2009,7 @@ async function getResourcesForAM(map_farm_usage){
                                 obj_update.total_iron += total_iron
                                 obj_update.time_finished = count_time_construction/3600
                                 map_resources_get_AM.set(coord,obj_update)
-                                
+
                             }
                             else{
                                 map_resources_get_AM.set(coord,{
@@ -2109,45 +2019,36 @@ async function getResourcesForAM(map_farm_usage){
                                     time_finished:count_time_construction/3600
                                 })
                             }
-                       
-    
-    
+
                             map_buildings.set(key_building,lv_building_current)
-                            
-                            if(count_time_construction > current_time_construction * 3600){//this village has reached the number of res needed( construction time )
+
+                            if(count_time_construction > current_time_construction * 3600){
                                 break;
                             }
-        
-        
+
                         }
                     }
-        
-                    if(count_time_construction > current_time_construction * 3600){//this village has reached the number of res needed( construction time )
+
+                    if(count_time_construction > current_time_construction * 3600){
                         break;
                     }
                 }
             })
-        
+
             list_map_resources_get_AM.push(map_resources_get_AM)
 
         }
-    
-        // console.log("list_map_resources_get_AM",list_map_resources_get_AM)
+
         resolve(list_map_resources_get_AM)
-    
+
     })
 
-
 }
-
-
-/////////////////////////////////////////////////////////////////get templates//////////////////////////////////////////////////
-
 
 function getTemplates(){
     return new Promise((resolve,reject)=>{
 
-        if(game_data.features.AccountManager.active == false){//AM is not active
+        if(game_data.features.AccountManager.active == false){
             resolve({
                 map_coord_templates:new Map(),
                 map_construction_templates:new Map(),
@@ -2155,14 +2056,10 @@ function getTemplates(){
             })
         }
 
-
-
-
-        let link_combined_production=game_data.link_base_pure+"am_village"
+        let link_combined_production=buildUrl("am_village")
         let dataPage = httpGet(link_combined_production)
         const parserMain = new DOMParser();
         const htmlDocMain = parserMain.parseFromString(dataPage, 'text/html');
-        //get pages for all incoming
         let list_pages=[]
 
         if($(htmlDocMain).find("#village_table").prev().find("select").length>0){
@@ -2170,24 +2067,22 @@ function getTemplates(){
                 list_pages.push(item.value)
             })
         }
-        else if($(htmlDocMain).find("#village_table").prev().find(".paged-nav-item").length>0){//all pages from the current folder
+        else if($(htmlDocMain).find("#village_table").prev().find(".paged-nav-item").length>0){
             let nr_pages=$(htmlDocMain).find("#village_table").prev().find(".paged-nav-item").length
             for(let i=nr_pages-2;i>=0;i--){
-                let link=game_data.link_base_pure+`am_village&page=${i}`
+                let link=buildUrl(`am_village&page=${i}`)
                 list_pages.push(link);
             }
-        
+
         }
         else{
             list_pages.push(link_combined_production);
         }
         list_pages=list_pages.reverse();
-        console.log(list_pages)
 
-        // go to every page and get template
         let map_coord_templates=new Map()
-        let map_construction_templates=new Map() 
-        let map_priortize_farm=new Map() 
+        let map_construction_templates=new Map()
+        let map_priortize_farm=new Map()
 
         async function ajaxRequest (urls) {
             let current_url
@@ -2197,7 +2092,6 @@ function getTemplates(){
             else{
                 current_url="stop"
             }
-            console.log(current_url)
             let start_ajax=new Date().getTime()
             if (urls.length >= 0 && current_url!="stop") {
                 $.ajax({
@@ -2211,7 +2105,6 @@ function getTemplates(){
                         for(let i=0;i<table_construction.length;i++){
                             let coord=table_construction[i].children[0].innerText.match(/[0-9]{3}\|[0-9]{3}/)[0]
                             let template_name=table_construction[i].children[1].innerText.trim()
-                            // console.log(template_name)
                             if(template_name!=""){
                                 map_coord_templates.set(coord,template_name)
                                 map_construction_templates.set(template_name,0)
@@ -2220,10 +2113,8 @@ function getTemplates(){
 
                         }
 
-               
                         let stop_ajax=new Date().getTime();
                         let diff=stop_ajax-start_ajax
-                        console.log("wait: "+diff)
                         window.setTimeout(function(){
                             ajaxRequest (list_pages)
                             UI.SuccessMessage("get AM construction page: "+urls.length)
@@ -2233,23 +2124,21 @@ function getTemplates(){
                         reject(err)
                     }
                 })
-            
+
             }
             else
             {
-                //get templates name
                 let table_name_tamplate=Array.from($(htmlDocMain).find("select[name=template]").eq(0).find("option"))
                 for(let i=0;i<table_name_tamplate.length;i++){
 
-                    let link=game_data.link_base_pure+`am_village&mode=queue&template=${table_name_tamplate[i].value}`
+                    let link=buildUrl(`am_village&mode=queue&template=${table_name_tamplate[i].value}`)
                     let name
-                    if(i<3)//only for the first 3 default template remove parantesis
+                    if(i<3)
                         name=table_name_tamplate[i].innerText.replaceAll("\n","").replaceAll("\t","").replace(/\(\w+\)/,"")
                     else
                         name=table_name_tamplate[i].innerText.replaceAll("\n","").replaceAll("\t","")
 
                     if(map_construction_templates.has(name)){
-                        // console.log(name)
                         let data=await ajaxPromise(link)
                         const parser = new DOMParser();
                         const htmlDoc = parser.parseFromString(data, 'text/html');
@@ -2267,38 +2156,27 @@ function getTemplates(){
                         let farmMaxCapacity = 99;
                         let hasCustomCapacity = $(htmlDoc).find("input[name=farm_upgrade_toggle]").eq(0).is(":checked")
 
-                        console.log("name: " + name)
-                        console.log("hasCustomCapacity: " + hasCustomCapacity)
-
                         if(hasCustomCapacity){
                             farmMaxCapacity = 100 - parseInt($(htmlDoc).find("select[name=population_upgrades]").val())
                         }
                         map_priortize_farm.set(name, farmMaxCapacity)
                     }
-                    
+
                 }
-                
-                
 
-
-                // console.log("map_construction_templates",map_construction_templates)
-                // console.log("map_coord_templates",map_coord_templates)
                 UI.SuccessMessage("done")
                 resolve({
                     map_coord_templates:map_coord_templates,
                     map_construction_templates:map_construction_templates,
                     map_priortize_farm: map_priortize_farm
                 })
-                // console.log(map_incoming)
 
-                
             }
         }
         ajaxRequest(list_pages);
     })
 
 }
-
 
 function ajaxPromise(link){
     return new Promise((resolve,reject)=>{
@@ -2308,10 +2186,9 @@ function ajaxPromise(link){
             url: link,
             method: 'get',
             success: (data) => {
-   
+
                 let stopAjax=new Date().getTime()
                 let difAjax=stopAjax-startAjax
-                // console.log("wait ",difAjax)
                 window.setTimeout(()=>{
                     resolve(data)
                 },200-difAjax)
@@ -2324,24 +2201,22 @@ function ajaxPromise(link){
     })
 }
 
-
 function getDataBuildings(){
 
     return new Promise((resolve,reject)=>{
-        let link_combined_production=game_data.link_base_pure+"overview_villages&mode=buildings"
+        let link_combined_production=buildUrl("overview_villages&mode=buildings")
         let dataPage = httpGet(link_combined_production)
         const parser = new DOMParser();
         const htmlDoc = parser.parseFromString(dataPage, 'text/html');
-        //get pages for all incoming
         let list_pages=[]
-    
+
         if($(htmlDoc).find(".paged-nav-item").parent().find("select").length>0){
             Array.from($(htmlDoc).find(".paged-nav-item").parent().find("select").find("option")).forEach(function(item){
                 list_pages.push(item.value)
             })
             list_pages.pop();
         }
-        else if(htmlDoc.getElementsByClassName("paged-nav-item").length>0){//all pages from the current folder
+        else if(htmlDoc.getElementsByClassName("paged-nav-item").length>0){
             let nr=0;
             Array.from(htmlDoc.getElementsByClassName("paged-nav-item")).forEach(function(item){
                 let current=item.href;
@@ -2349,16 +2224,13 @@ function getDataBuildings(){
                 nr++;
                 list_pages.push(current);
             })
-            
+
         }
         else{
             list_pages.push(link_combined_production);
         }
         list_pages=list_pages
-        console.log(list_pages)
-    
-        
-        // go to every page and get incoming
+
         let  map_buildings=new Map()
         function ajaxRequest (urls) {
             let current_url
@@ -2368,7 +2240,6 @@ function getDataBuildings(){
             else{
                 current_url="stop"
             }
-            console.log(current_url)
             let start_ajax=new Date().getTime()
             if (urls.length >= 0 && current_url!="stop") {
                 $.ajax({
@@ -2382,37 +2253,29 @@ function getDataBuildings(){
                             let table_buildings=Array.from($(htmlDoc).find(".row_a, .row_b"))
                             for(let i=0;i<table_buildings.length;i++){
                                 let coord=$(table_buildings[i]).find(".nowrap").text().match(/[0-9]{3}\|[0-9]{3}/)[0]
-                                // console.log(table_buildings[i])
                                 let time_last_construction=$(table_buildings[i]).find(".queue_icon img").last().attr("title")
-                                if(time_last_construction==undefined){//has building queued
+                                if(time_last_construction==undefined){
                                     time_last_construction=0
                                 }
                                 else{
                                     time_last_construction=time_last_construction.split("-")[1]
                                     time_last_construction=getFinishTime(time_last_construction)
-                               
+
                                 }
-                                // console.log(time_last_construction)
                                 map_buildings.set(coord+"_time_queued",time_last_construction)
-                                
-    
+
                                 let buildings=$(table_buildings[i]).find(".upgrade_building")
                                 for(let j=0;j<buildings.length;j++){
                                     let name=buildings[j].classList[1].replace("b_","")
                                     let level=parseInt(buildings[j].innerText)
-                                    // console.log(`name: ${name}, level:${level}`)
                                     let key=coord+"_"+name
                                     map_buildings.set(key,level)
                                 }
-    
-    
-    
-                                //add queued buildings
+
                                 let list_queued=Array.from($(table_buildings[i]).find(".queue_icon img")).map(e => e.src.match(/\w+\.(webp|png)/)[0].replace(/\.(webp|png)/, ""));
-                                // console.log(list_queued)
                                 for(let j=0;j<list_queued.length;j++){
                                     let key=coord+"_"+list_queued[j]
-    
+
                                     if(map_buildings.has(key)){
                                         let value=map_buildings.get(key)
                                         map_buildings.set(key,value+1)
@@ -2420,8 +2283,8 @@ function getDataBuildings(){
                                         map_buildings.set(key,1)
                                     }
                                 }
-    
-                            }    
+
+                            }
                         }
                         else{
                             let table_buildings=Array.from($(htmlDoc).find(".row_a, .row_b"))
@@ -2429,33 +2292,29 @@ function getDataBuildings(){
 
                                 let coord = $(table_buildings[i]).find(".nowrap").text().match(/[0-9]{3}\|[0-9]{3}/)[0]
                                 let time_last_construction = $(table_buildings[i].nextElementSibling.nextElementSibling).find("img").last().attr("title")
-                                if(time_last_construction==undefined){//has building queued
+                                if(time_last_construction==undefined){
                                     time_last_construction=0
                                 }
                                 else{
                                     time_last_construction=time_last_construction.split("-")[1]
                                     time_last_construction=getFinishTime(time_last_construction)
-                               
+
                                 }
                                 map_buildings.set(coord+"_time_queued",time_last_construction)
-
 
                                 let buildingsLevel = $(table_buildings[i].nextElementSibling).find('table').find('td')
                                 let buildingsName = $(table_buildings[i].nextElementSibling).find('table').find('th')
                                 for(let j=0;j<buildingsLevel.length;j++){
                                     let name=buildingsName[j].getElementsByTagName("img")[0].src.split("buildings/")[1].replace(".png","")
                                     let level=parseInt(buildingsLevel[j].innerText)
-                                    // console.log(`name: ${name}, level:${level}`)
                                     let key=coord+"_"+name
                                     map_buildings.set(key,level)
                                 }
 
-                                //add queued buildings
                                 let list_queued=Array.from($(table_buildings[i].nextElementSibling.nextElementSibling).find("img")).map(e => e.src.match(/\w+\.(webp|png)/)[0].replace(/\.(webp|png)/, ""));
-                                // console.log(list_queued)
                                 for(let j=0;j<list_queued.length;j++){
                                     let key=coord+"_"+list_queued[j]
-    
+
                                     if(map_buildings.has(key)){
                                         let value=map_buildings.get(key)
                                         map_buildings.set(key,value+1)
@@ -2463,15 +2322,13 @@ function getDataBuildings(){
                                         map_buildings.set(key,1)
                                     }
                                 }
-                                
+
                             }
 
                         }
-                        
 
                         let stop_ajax=new Date().getTime();
                         let diff=stop_ajax-start_ajax
-                        console.log("wait: "+diff)
                         window.setTimeout(function(){
                             ajaxRequest (list_pages)
                             UI.SuccessMessage("get building page: "+urls.length)
@@ -2481,40 +2338,34 @@ function getDataBuildings(){
                         reject(err)
                     }
                 })
-               
+
             }
             else
             {
                 UI.SuccessMessage("done")
-                console.log("map_buildings herere",map_buildings)
                 resolve(map_buildings)
-     
+
             }
         }
         ajaxRequest(list_pages);
-    
+
     })
 }
-
-
-
-
 
 function getFinishTime(time_finished){
     var date_finished=""
     let server_date=document.getElementById("serverDate").innerText.split("/")
-    if(time_finished.includes(lang["aea2b0aa9ae1534226518faaefffdaad"].replace(" %s",""))){    //today
+    if(time_finished.includes(lang["aea2b0aa9ae1534226518faaefffdaad"].replace(" %s",""))){
         date_finished=server_date[1]+"/"+server_date[0]+"/"+server_date[2]+" "+time_finished.match(/\d+:\d+/)[0]
     }
-    else if(time_finished.includes(lang["57d28d1b211fddbb7a499ead5bf23079"].replace(" %s",""))){    //tomorrow
+    else if(time_finished.includes(lang["57d28d1b211fddbb7a499ead5bf23079"].replace(" %s",""))){
         var tomorrow_date=new Date(server_date[1]+"/"+server_date[0]+"/"+server_date[2]);
         tomorrow_date.setDate(tomorrow_date.getDate()+1);
         date_finished= ("0"+(tomorrow_date.getMonth()+1)).slice(-2)+"/"+("0"+tomorrow_date.getDate()).slice(-2)+"/"+tomorrow_date.getFullYear()+" "+time_finished.match(/\d+:\d+/)[0];
-    }else if(time_finished.includes(lang["0cb274c906d622fa8ce524bcfbb7552d"].split(" ")[0])){  //on
+    }else if(time_finished.includes(lang["0cb274c906d622fa8ce524bcfbb7552d"].split(" ")[0])){
         var on=time_finished.match(/\d+.\d+/)[0].split(".");
         date_finished=on[1]+"/"+on[0]+"/"+server_date[2]+" "+time_finished.match(/\d+:\d+/)[0];
     }
-    // console.log("date_finished: "+date_finished)
     date_finished=new Date(date_finished)
 
     let serverTime=document.getElementById("serverTime").innerText
@@ -2523,14 +2374,11 @@ function getFinishTime(time_finished){
     let date_current=new Date(serverDate+" "+serverTime)
 
     let result_seconds=parseInt((date_finished.getTime()-date_current.getTime())/1000)
-    // console.log("before here---------: "+result_seconds)
 
     if(result_seconds < 0){
         date_finished.setDate(date_finished.getDate()+1)
         result_seconds=parseInt((date_finished.getTime()-date_current.getTime())/1000)
     }
-
-    // console.log("after here---------: "+result_seconds)
 
     return result_seconds;
 }
@@ -2538,12 +2386,11 @@ function getFinishTime(time_finished){
 function getConstantsTwBuildings(){
     if (localStorage.getItem(game_data.world+"constantBuildings") !== null) {
         let map_constants_buildings = new Map(JSON.parse(localStorage.getItem(game_data.world+"constantBuildings")))
-        console.log("constant building world already exist")
         return map_constants_buildings
     }
-    else{ //Get data from xml and save it in localStorage to avoid excessive XML requests to server
-            let data=httpGet("/interface.php?func=get_building_info") //Load world data
-            
+    else{
+            let data=httpGet("/interface.php?func=get_building_info")
+
             const parser = new DOMParser();
             const htmlDoc = parser.parseFromString(data, 'text/html');
             let map_constants_buildings=new Map()
@@ -2553,8 +2400,6 @@ function getConstantsTwBuildings(){
                 let wood=Number(list_buildings[i].getElementsByTagName("wood")[0].innerText)
                 let stone=Number(list_buildings[i].getElementsByTagName("stone")[0].innerText)
                 let iron=Number(list_buildings[i].getElementsByTagName("iron")[0].innerText)
-
-
 
                 let wood_factor=Number(list_buildings[i].getElementsByTagName("wood_factor")[0].innerText)
                 let stone_factor=Number(list_buildings[i].getElementsByTagName("stone_factor")[0].innerText)
@@ -2576,12 +2421,10 @@ function getConstantsTwBuildings(){
             }
             let data_save=JSON.stringify(Array.from(map_constants_buildings.entries()))
             localStorage.setItem(game_data.world+"constantBuildings",data_save);
-            console.log("save speed world")
         return map_constants_buildings
     }
 
 }
-
 
 function calculateTimeAndResConstruction(hq, level, obj_data) {
 
@@ -2618,25 +2461,14 @@ function calculateTimeAndResConstruction(hq, level, obj_data) {
         30:1.056291,
     }
 
-
     var buildTime = obj_data.build_time * Math.pow(1.2, (level -1)) * Math.pow(1.05, -hq) * constantLvl[level]
-    
+
     let total_wood = Math.round(obj_data.wood * Math.pow(obj_data.wood_factor, level - 1))
     let total_stone = Math.round(obj_data.stone * Math.pow(obj_data.stone_factor, level - 1))
     let total_iron = Math.round(obj_data.iron * Math.pow(obj_data.iron_factor, level - 1))
-    
+
     return [Math.round(buildTime), total_wood , total_stone, total_iron];
 }
-
-
-
-
-
-/////////////////////////////////////////////////////////k-means////////////////////////////////////////////////////////
-// https://github.com/shudima/dimas-kmeans/blob/master/dimas-kmeans.js
-
-
-
 
 function getClusters(data, options) {
     let result_cluster=[]
@@ -2650,12 +2482,9 @@ function getClusters(data, options) {
             result_cluster=result
         }
     }
-    console.log("maxDistanceGlobal",maxDistanceGlobal)
 
-    // throw new Error("stop")
-	return result_cluster
+    return result_cluster
 }
-
 
 function insideGetCluster(data,options){
     var numberOfClusters, distanceFunction, vectorFunction, minMaxValues, maxIterations;
@@ -2665,19 +2494,17 @@ function insideGetCluster(data,options){
 
     if (!options || !options.distanceFunction) { distanceFunction = getDistance; }
     else { distanceFunction = options.distanceFunction; }
-    
+
     if (!options || !options.vectorFunction) { vectorFunction = defaultVectorFunction; }
     else { vectorFunction = options.vectorFunction; }
-    
+
     if (!options || !options.maxIterations) { maxIterations = 1000; }
     else { maxIterations = options.maxIterations; }
 
     let result_cluster=getClustersWithParams(data, numberOfClusters, distanceFunction, vectorFunction, maxIterations).clusters;
 
-    ////calculate max distance
-
     let maxDistance=0;
-    for(let i=0;i<result_cluster.length;i++){//for each cluster
+    for(let i=0;i<result_cluster.length;i++){
         let list_coord=result_cluster[i].data
         for(let j=0;j<list_coord.length;j++){
             for(let k=j+1;k<list_coord.length;k++){
@@ -2686,13 +2513,10 @@ function insideGetCluster(data,options){
             }
         }
     }
-    // console.log("maxDistance",maxDistance)
     result_cluster.maxDistance=maxDistance
     return result_cluster
 
-    
 }
-
 
 function getClustersWithParams(data ,numberOfClusters, distanceFunction, vectorFunction, maxIterations) {
 
@@ -2702,163 +2526,143 @@ function getClustersWithParams(data ,numberOfClusters, distanceFunction, vectorF
         means.push(data[random_index])
     }
 
+    var clusters = createClusters(means);
 
-    // console.log("means",means)
-	var clusters = createClusters(means);
-
-	var prevMeansDistance = 999999;
+    var prevMeansDistance = 999999;
 
     var numOfInterations = 0;
     var iterations = [];
 
+    while(numOfInterations < maxIterations) {
 
-	while(numOfInterations < maxIterations) {
+        initClustersData(clusters);
 
-		initClustersData(clusters);
+        assignDataToClusters(data, clusters, distanceFunction, vectorFunction);
 
-	    assignDataToClusters(data, clusters, distanceFunction, vectorFunction);
+        updateMeans(clusters, vectorFunction);
 
-		updateMeans(clusters, vectorFunction);
+        var meansDistance = getMeansDistance(clusters, vectorFunction, distanceFunction);
 
-		var meansDistance = getMeansDistance(clusters, vectorFunction, distanceFunction);
-
-	    //iterations.push(meansDistance);
-        // console.log(numOfInterations + ': ' + meansDistance);
         numOfInterations++;
-	}
-	
-	// console.log(getMeansDistance(clusters, vectorFunction, distanceFunction));
+    }
 
     return { clusters: clusters, iterations: iterations };
 }
 
 function defaultVectorFunction(vector) {
-	return vector;
+    return vector;
 }
-
 
 function getMeansDistance(clusters, vectorFunction, distanceFunction) {
 
-	var meansDistance = 0;
+    var meansDistance = 0;
 
-	clusters.forEach(function (cluster) {
+    clusters.forEach(function (cluster) {
 
-		cluster.data.forEach(function (vector) {
+        cluster.data.forEach(function (vector) {
 
-		    meansDistance = meansDistance + Math.pow(distanceFunction(cluster.mean, vectorFunction(vector)), 2);
-		});
-	});
+            meansDistance = meansDistance + Math.pow(distanceFunction(cluster.mean, vectorFunction(vector)), 2);
+        });
+    });
 
-
-	return meansDistance;
+    return meansDistance;
 }
 
 function updateMeans(clusters, vectorFunction) {
 
-	clusters.forEach(function (cluster) {
-		updateMean(cluster, vectorFunction);
+    clusters.forEach(function (cluster) {
+        updateMean(cluster, vectorFunction);
 
-	});
+    });
 }
-
 
 function updateMean(cluster, vectorFunction) {
 
-	var newMean = [];
+    var newMean = [];
 
-	for (var i = 0; i < cluster.mean.length; i++) {
-		newMean.push(getMean(cluster.data, i, vectorFunction));
-	};
+    for (var i = 0; i < cluster.mean.length; i++) {
+        newMean.push(getMean(cluster.data, i, vectorFunction));
+    };
 
-
-	cluster.mean = newMean;
+    cluster.mean = newMean;
 
 }
 
 function getMean(data, index, vectorFunction) {
-	var sum =  0;
-	var total = data.length;
+    var sum =  0;
+    var total = data.length;
 
-	if(total == 0) return 0;
+    if(total == 0) return 0;
 
-	data.forEach(function (vector) {
+    data.forEach(function (vector) {
 
-			sum = sum + vectorFunction(vector)[index];
-	});
+            sum = sum + vectorFunction(vector)[index];
+    });
 
-
-	return sum / total;
+    return sum / total;
 }
 
 function assignDataToClusters(data, clusters, distanceFunction, vectorFunction) {
 
+    data.forEach(function (vector) {
+        var cluster = findClosestCluster(vectorFunction(vector), clusters, distanceFunction);
 
-	data.forEach(function (vector) {
-	    var cluster = findClosestCluster(vectorFunction(vector), clusters, distanceFunction);
+        if(!cluster.data) cluster.data = [];
 
-	    if(!cluster.data) cluster.data = [];
-		
-		cluster.data.push(vector);
-	});
+        cluster.data.push(vector);
+    });
 }
 
 function findClosestCluster(vector, clusters, distanceFunction) {
 
-	var closest = {};
-	var minDistance = 9999999;
+    var closest = {};
+    var minDistance = 9999999;
 
-	clusters.forEach(function (cluster) {
-		
-		var distance = distanceFunction(cluster.mean, vector);
-		if (distance < minDistance) {
-			minDistance = distance;
-			closest = cluster;
-		};
-	});
+    clusters.forEach(function (cluster) {
 
-	return closest;
+        var distance = distanceFunction(cluster.mean, vector);
+        if (distance < minDistance) {
+            minDistance = distance;
+            closest = cluster;
+        };
+    });
+
+    return closest;
 }
 
 function initClustersData(clusters) {
-	clusters.forEach(function (cluster) {
-		cluster.data = [];
-	});
+    clusters.forEach(function (cluster) {
+        cluster.data = [];
+    });
 }
 
 function createClusters(means) {
-	var clusters = [];
+    var clusters = [];
 
-	means.forEach(function (mean) {
-		var cluster = { mean : mean, data : []};
+    means.forEach(function (mean) {
+        var cluster = { mean : mean, data : []};
 
-		clusters.push(cluster);
-	});
+        clusters.push(cluster);
+    });
 
-	return clusters;
+    return clusters;
 }
-
 
 function getDistance(vector1, vector2) {
-	var sum = 0;
+    var sum = 0;
 
-	for (var i = 0; i < vector1.length; i++) {
-		sum = sum + Math.pow(vector1[i] - vector2[i],2)
-	};
+    for (var i = 0; i < vector1.length; i++) {
+        sum = sum + Math.pow(vector1[i] - vector2[i],2)
+    };
 
-	return Math.sqrt(sum);
+    return Math.sqrt(sum);
 
 }
-
-
-
-///////////////////////////////////////////////////////show data on the map///////////////////////////////////////
 
 function addInfoOnMap(mapInfoResources,random_color){
     let drawInfo=true
-    // console.log("sa mor eu de nu merge",mapInfoResources)
     TWMap.mapHandler.spawnSector = function (data, sector) {
         originalSpawnSector.call(TWMap.mapHandler, data, sector);
-        console.log(`spawn area map`)
 
         if(drawInfo==true){
             drawInfo=false
@@ -2869,16 +2673,12 @@ function addInfoOnMap(mapInfoResources,random_color){
                     let elements=visibleSectors[key]._elements
                     Object.keys(elements).forEach(key=>{
                         let villageId=elements[key].id.match(/\d+/)
-                        // console.log(villageId)
                         if(villageId!=null){
                             if(mapInfoResources.has(villageId[0])){
                                 let obj=mapInfoResources.get(villageId[0])
-                                // console.log(obj)
-                                // console.log(`label cluster: ${obj.label_cluster}, color random: `)
-                                // console.log(random_color[obj.label_cluster])
                                 createMapInfo(obj,random_color[obj.label_cluster])
                             }
-                        }  
+                        }
                     })
                 })
                 drawInfo=true
@@ -2887,11 +2687,9 @@ function addInfoOnMap(mapInfoResources,random_color){
     };
 }
 
-
 function createMapInfo(obj,random_color){
 
     try {
-        console.log(random_color)
         if(document.getElementById(`info_extra${obj.villageId}`) == null ){
             let greenColor="#026440"
             let redColor="#E80000"
@@ -2909,7 +2707,6 @@ function createMapInfo(obj,random_color){
             if(document.getElementById(`map_cmdicons_${obj.villageId}_1`)!=null)
                 document.getElementById(`map_cmdicons_${obj.villageId}_1`).remove()
 
-
             let html_info=`
                 <div class="border_info" id="info_extra${obj.villageId}" style="position:absolute;left:${leftImg};top:${topImg};width:51px;height:36px;z-index:3; ${`background-color:${random_color.colorOpacity};outline:${random_color.color} solid 2px`}"></div>
                 <center><font color="${textColor}"  class="shadow20" style="position:absolute;left:${leftImg};top:${topImg};width:14px;height:14px;z-index:4;margin-left:0px;; font-size: 12px">nr:${obj.label_cluster} </font></center>
@@ -2918,14 +2715,12 @@ function createMapInfo(obj,random_color){
                 `
             $(html_info).appendTo(parent);
 
-
         }
 
     } catch (error) {
-        
+
     }
 }
-
 
 function getRandomColor(opacity) {
     let  color = 'rgb(';
@@ -2937,8 +2732,8 @@ function getRandomColor(opacity) {
         colorOpacity += randomNr + ',';
 
     }
-    color=color.substr(0,color.length-1)  + ')'; // add the transparency
-    colorOpacity=colorOpacity + opacity + ')'; // add the transparency
+    color=color.substr(0,color.length-1)  + ')';
+    colorOpacity=colorOpacity + opacity + ')';
 
     return {
         color:color,
@@ -2946,4 +2741,3 @@ function getRandomColor(opacity) {
     }
 
 }
-
